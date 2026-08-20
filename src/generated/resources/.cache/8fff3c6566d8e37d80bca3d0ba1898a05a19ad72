@@ -1,0 +1,9 @@
+// 1.21.1	2026-08-19T21:10:38.7276986	Registrate Provider for createattached [Registries, Data Maps, Recipes, Advancements, Loot Tables, Tags (blocks), Tags (enchantments), Tags (items), Tags (fluids), Tags (entity_types), generic_server_provider, Blockstates, Item models, Lang (en_us/en_ud), generic_client_provider]
+425c1806b750f84af9931be669d1880a7986ccbe assets/createattached/blockstates/attached_block.json
+fed9fe7e922b4957b8e1ba64429f582c7d721df4 assets/createattached/lang/en_ud.json
+ed1715bba423f000d169dbbe77e5f89e2441bbbf assets/createattached/lang/en_us.json
+52aebdc0a7c5c77771f13cfaadef3b5a711d44f8 assets/createattached/models/block/attached_block.json
+8fe82b6835f5d33371d003a3531a005a4a6fde99 assets/createattached/models/item/attached_block.json
+967dd24c13bc43e0827691ce14d7c6f03f47b3bd data/createattached/loot_table/blocks/attached_block.json
+e084c913a895d13e735b5cfc26974e42236854ed data/minecraft/tags/block/mineable/axe.json
+e084c913a895d13e735b5cfc26974e42236854ed data/minecraft/tags/block/mineable/pickaxe.json

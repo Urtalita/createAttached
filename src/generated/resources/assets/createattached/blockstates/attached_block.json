@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "createattached:block/attached_block"
+    }
+  }
+}
