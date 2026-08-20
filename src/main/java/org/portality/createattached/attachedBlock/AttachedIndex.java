@@ -1,6 +1,5 @@
-package org.portality.createattached;
+package org.portality.createattached.attachedBlock;
 
-import com.mojang.serialization.Codec;
 import com.simibubi.create.foundation.data.SharedProperties;
 import com.tterrag.registrate.util.entry.BlockEntityEntry;
 import com.tterrag.registrate.util.entry.BlockEntry;
@@ -8,21 +7,17 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.material.MapColor;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.ApiStatus;
+import org.portality.createattached.Createattached;
 
 import java.util.UUID;
 import java.util.function.UnaryOperator;
 
-import static com.simibubi.create.foundation.data.BlockStateGen.simpleCubeAll;
 import static com.simibubi.create.foundation.data.TagGen.axeOrPickaxe;
-import static com.simibubi.create.foundation.data.TagGen.pickaxeOnly;
-import static net.minecraft.world.level.block.Blocks.GOLD_BLOCK;
 
 public class AttachedIndex {
 
@@ -33,7 +28,7 @@ public class AttachedIndex {
             .block("attached_block", AttachedBlock::new)
             .initialProperties(() -> Blocks.OAK_LOG)
             .initialProperties(SharedProperties::wooden)
-            .properties(p -> p.mapColor(MapColor.TERRACOTTA_WHITE))
+            .properties(p -> p.mapColor(MapColor.TERRACOTTA_WHITE).noOcclusion())
             .transform(axeOrPickaxe())
             .item(AttachedItem::new)
             .build()

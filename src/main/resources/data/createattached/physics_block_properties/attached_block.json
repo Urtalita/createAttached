@@ -1,5 +1,5 @@
 {
-  "selector": "createsprings:large_spring_extention",
+  "selector": "createattached:attached_block",
 
   "properties": {
     "sable:mass": 0.01,

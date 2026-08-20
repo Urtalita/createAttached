@@ -1,25 +1,23 @@
 package org.portality.createattached.mixin;
 
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.player.Player;
+import dev.ryanhcode.sable.mixinhelpers.CanFallAtleastHelper;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
+import org.joml.Vector3d;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(value = Player.class, priority = 1500)
-public class PlayerMixinSquared {
-
-    @WrapOperation(
-            method = "canPlayerFitWithinBlocksAndEntitiesWhen",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/world/level/Level;noCollision(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/phys/AABB;)Z"
-            )
+@Mixin(value = CanFallAtleastHelper.class)
+public class GetUpMixin {
+    @Inject(
+            method = "canFallAtleastWithSubLevels",
+            at = @At("HEAD"),
+            cancellable = true
     )
-    private boolean sable$noCollisionWithSubLevels(Level instance, Entity entity, AABB aabb, Operation<Boolean> original) {
-        return original.call(instance, entity, aabb);
+    private static void createAttached$canFallLeastWithSubLevels(Level level, AABB aabb, CallbackInfoReturnable<Vector3d> cir) {
+        cir.setReturnValue(null);
     }
 }

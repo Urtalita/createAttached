@@ -1,12 +1,8 @@
-package org.portality.createattached;
+package org.portality.createattached.attachedBlock;
 
-import com.mojang.math.Axis;
-import dev.ryanhcode.sable.Sable;
-import dev.ryanhcode.sable.api.sublevel.ServerSubLevelContainer;
 import dev.ryanhcode.sable.api.sublevel.SubLevelContainer;
 import dev.ryanhcode.sable.sublevel.ServerSubLevel;
 import dev.ryanhcode.sable.sublevel.SubLevel;
-import dev.ryanhcode.sable.sublevel.plot.LevelPlot;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
@@ -16,11 +12,13 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Vector3d;
 
 import java.util.UUID;
+
+import static org.portality.createattached.physics.PlayerPhysicHandler.getAttachedServerSubLevel;
 
 public class AttachedItem extends BlockItem {
     public AttachedItem(Block block, Properties properties) {
@@ -43,8 +41,14 @@ public class AttachedItem extends BlockItem {
 
     }
 
-    private @Nullable SubLevel getAttachedSubLevel(UUID uuid, Level serverLevel) {
-        final SubLevelContainer container = SubLevelContainer.getContainer(serverLevel);
-        return container.getSubLevel(uuid);
+    public static void unequip(ItemStack stack, ServerLevel serverLevel){
+        if(!stack.has(AttachedIndex.ATTACHED)) return;
+
+        BlockPos position = stack.get(AttachedIndex.ATTACHED_POS);
+
+        BlockEntity entity = serverLevel.getBlockEntity(position);
+        if(entity instanceof AttachedBE attachedBE){
+            serverLevel.setBlock(position, Blocks.AIR.defaultBlockState(), 3);
+        }
     }
 }

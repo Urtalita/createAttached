@@ -4,6 +4,9 @@
   "package": "org.portality.createattached.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "GetUpMixin",
+    "SecondEntityMixinSquared",
+    "SubLevelEntityCollision"
   ],
   "client": [
   ],

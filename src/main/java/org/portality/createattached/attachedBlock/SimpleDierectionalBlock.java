@@ -1,4 +1,4 @@
-package org.portality.createattached;
+package org.portality.createattached.attachedBlock;
 
 import com.mojang.serialization.MapCodec;
 import com.simibubi.create.content.equipment.wrench.IWrenchable;

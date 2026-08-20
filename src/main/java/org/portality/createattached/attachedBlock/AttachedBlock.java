@@ -1,7 +1,8 @@
-package org.portality.createattached;
+package org.portality.createattached.attachedBlock;
 
-import com.mojang.serialization.MapCodec;
 import com.simibubi.create.foundation.block.IBE;
+import dev.ryanhcode.sable.Sable;
+import dev.ryanhcode.sable.sublevel.SubLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
@@ -12,18 +13,18 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.DirectionalBlock;
 import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import org.checkerframework.checker.units.qual.A;
+import org.portality.createattached.HitboxHelper;
 
 public class AttachedBlock extends SimpleDierectionalBlock implements IBE<AttachedBE> {
     public static final BooleanProperty ASSEMBLED = BooleanProperty.create("assembled");
@@ -51,21 +52,14 @@ public class AttachedBlock extends SimpleDierectionalBlock implements IBE<Attach
 
     @Override
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        boolean assembled = state.getValue(ASSEMBLED);
-        if(!assembled) return super.getShape(state, level, pos, context);
-        return Shapes.empty();
+        return HitboxHelper.calculateDierectionalVoxelShape(this, Direction.NORTH, new Vec3(0, 0 ,12), new Vec3(16, 16, 16));
     }
-
-    /*
 
     @Override
-    protected RenderShape getRenderShape(BlockState state) {
-        boolean assembled = state.getValue(ASSEMBLED);
-        if(!assembled) return super.getRenderShape(state);
-        return RenderShape.INVISIBLE;
+    protected void onRemove(BlockState p_60515_, Level level, BlockPos pos, BlockState p_60518_, boolean p_60519_) {
+        withBlockEntityDo(level, pos, AttachedBE::onRemove);
+        super.onRemove(p_60515_, level, pos, p_60518_, p_60519_);
     }
-
-     */
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {

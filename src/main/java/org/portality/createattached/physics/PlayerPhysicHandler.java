@@ -1,27 +1,34 @@
-package org.portality.createattached;
+package org.portality.createattached.physics;
 
 import dev.ryanhcode.sable.api.sublevel.SubLevelContainer;
 import dev.ryanhcode.sable.sublevel.ServerSubLevel;
 import dev.ryanhcode.sable.sublevel.SubLevel;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3d;
+import org.portality.createattached.Createattached;
+import org.portality.createattached.attachedBlock.AttachedIndex;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 public class PlayerPhysicHandler {
-    public static final HashMap<UUID, UUID> sublevelToPlayer = new HashMap<>();
+    public static HashMap<UUID, UUID> sublevelToPlayer = new HashMap<>();
+    public static final HashMap<UUID, UUID> previouslyAddedMovement = new HashMap<>();
 
     private static final HashMap<UUID, Float> serverBodyRotations = new HashMap<>();
 
@@ -33,6 +40,14 @@ public class PlayerPhysicHandler {
 
     public static void put(SubLevel subLevel, Player player){
         sublevelToPlayer.put(subLevel.getUniqueId(), player.getUUID());
+    }
+
+    public static boolean isPlayerAttached(Player player){
+        return sublevelToPlayer.containsValue(player.getUUID());
+    }
+
+    public static boolean isSublevelAttached(SubLevel subLevel){
+        return sublevelToPlayer.containsKey(subLevel.getUniqueId());
     }
 
     @Nullable
@@ -54,39 +69,84 @@ public class PlayerPhysicHandler {
         return container.getSubLevel(uuid);
     }
 
-    public static float getBodyRotation(Player player){
+    public static @org.jetbrains.annotations.Nullable ServerSubLevel getAttachedServerSubLevel(UUID uuid, ServerLevel serverLevel) {
+        SubLevel subLevel = getAttachedSubLevel(uuid, serverLevel);
+        if(subLevel == null) return null;
+        return (ServerSubLevel) subLevel;
+    }
+
+    public static float getBodyRotation(Player player) {
         UUID uuid = player.getUUID();
         float headRot = player.getYHeadRot();
-        float currentBodyRot = serverBodyRotations.getOrDefault(uuid, headRot); //hashmap
+        float currentBodyRot = serverBodyRotations.getOrDefault(uuid, headRot);
 
-        double movementX = player.getDeltaMovement().x;
-        double movementZ = player.getDeltaMovement().z;
-        float movementSqr = (float)(movementX * movementX + movementZ * movementZ);
-
-        if (movementSqr > 0.000025F) {
-            float moveAngle = (float)(Mth.atan2(movementZ, movementX) * (180F / (float)Math.PI)) - 90.0F;
-            float diff = Mth.abs(Mth.wrapDegrees(headRot - moveAngle));
-
-            if (diff > 95.0F) {
-                currentBodyRot = headRot - 90.0F;
-            } else if (diff < -95.0F) {
-                currentBodyRot = headRot + 90.0F;
-            } else {
-                currentBodyRot = moveAngle;
-            }
-        } else {
-            float diff = Mth.wrapDegrees(headRot - currentBodyRot);
-            if (diff < -50.0F) {
-                currentBodyRot = headRot + 50.0F;
-            } else if (diff > 50.0F) {
-                currentBodyRot = headRot - 50.0F;
-            }
+        float diff = Mth.wrapDegrees(headRot - currentBodyRot);
+        if (diff < -50.0F) {
+            currentBodyRot = headRot + 50.0F;
+        } else if (diff > 50.0F) {
+            currentBodyRot = headRot - 50.0F;
         }
 
         currentBodyRot = Mth.wrapDegrees(currentBodyRot);
         serverBodyRotations.put(uuid, currentBodyRot);
 
         return currentBodyRot;
+    }
+
+    public static void syncBodyRotation(ServerPlayer player, float rotation){
+        serverBodyRotations.put(player.getUUID(), rotation);
+    }
+
+    public static Vec3 predictNextTickPhysics(ServerPlayer player) {
+        Vec3 currentPos = player.position();
+        Vec3 deltaMovement = player.getDeltaMovement();
+
+        double gravity = player.isNoGravity() ? 0.0D : 0.08D;
+        double drag = 0.98D;
+
+        if (player.isInWater()) {
+            gravity = 0.02D;
+            drag = 0.8D;
+        } else if (player.isInLava()) {
+            gravity = 0.02D;
+            drag = 0.5D;
+        }
+
+        double nextMotionY = (deltaMovement.y - gravity) * drag;
+        double nextMotionX = deltaMovement.x * drag;
+        double nextMotionZ = deltaMovement.z * drag;
+
+
+        if (player.onGround() && nextMotionY < 0) {
+            nextMotionY = 0;
+        }
+
+        Vec3 addedVector = new Vec3(nextMotionX, nextMotionY, nextMotionZ);
+
+        return currentPos.add(addedVector);
+    }
+
+
+    public static Vec3 getTarget(ServerPlayer player){
+        return predictNextTickPhysics(player).add(0, player.getEyeHeight(), 0).add(0, -0.5f, 0);
+    }
+
+    @Nullable
+    public static Vec3 getSublevelTarget(ServerPlayer player){
+        ItemStack stack = player.getItemBySlot(EquipmentSlot.CHEST);
+        if(!stack.has(AttachedIndex.ATTACHED)) return null;
+
+        UUID subLevelId = stack.get(AttachedIndex.ATTACHED);
+        BlockPos position = stack.get(AttachedIndex.ATTACHED_POS);
+
+        ServerSubLevel subLevel = getAttachedServerSubLevel(subLevelId, player.serverLevel());
+        if(subLevel == null) return null;
+
+        return getSublevelTarget(subLevel, position);
+    }
+
+    public static Vec3 getSublevelTarget(ServerSubLevel serverSubLevel, BlockPos attachedPosition){
+        return serverSubLevel.logicalPose().transformPosition(attachedPosition.getCenter());
     }
 
     public static void applyForceToPlayer(Vector3d localForce, ServerPlayer serverPlayer, Vector3d localGravity, ServerSubLevel serverSubLevel) {
@@ -118,7 +178,7 @@ public class PlayerPhysicHandler {
 
                 movementInstance.addTransientModifier(new AttributeModifier(
                         OVERLOAD_SPEED_ID,
-                        modifierValue,
+                        modifierValue + 0.3d,
                         AttributeModifier.Operation.ADD_MULTIPLIED_BASE
                 ));
             }
@@ -148,5 +208,37 @@ public class PlayerPhysicHandler {
         serverPlayer.hurtMarked = true;
 
 
+    }
+
+    public static void pullPlayerToContraption(ServerPlayer player){
+        ItemStack stack = player.getItemBySlot(EquipmentSlot.CHEST);
+        if(!stack.has(AttachedIndex.ATTACHED)) return;
+
+        UUID subLevelId = stack.get(AttachedIndex.ATTACHED);
+        BlockPos position = stack.get(AttachedIndex.ATTACHED_POS);
+
+        ServerSubLevel subLevel = getAttachedServerSubLevel(subLevelId, player.serverLevel());
+        if(subLevel == null) return;
+
+        pullPlayerToContraption(player, subLevel, position);
+    }
+
+    public static void pullPlayerToContraption(ServerPlayer player, ServerSubLevel serverSubLevel, BlockPos attachedPosition){
+        /*
+        Vec3 playerPosition = getTarget(player);
+        Vec3 playerGoal = getSublevelTarget(serverSubLevel, attachedPosition);
+
+        Vec3 diff = playerGoal.subtract(playerPosition);
+        double diffLength = diff.length();
+
+        if(diffLength <= .25d) return;
+        if(diffLength >= 5) return;
+
+        Vec3 addedMovement = diff.scale(.5d);
+
+        player.addDeltaMovement(addedMovement);
+        player.hurtMarked = true;
+
+         */
     }
 }
