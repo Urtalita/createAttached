@@ -38,6 +38,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
+import org.portality.createattached.AttachedIndex;
 import org.portality.createattached.network.SyncBodyAnglePayload;
 import org.portality.createattached.physics.PlayerPhysicHandler;
 import org.portality.createattached.physics.AttachedConstraint;
@@ -124,9 +125,6 @@ public class AttachedBE extends SmartBlockEntity implements BlockEntitySubLevelA
 
         if(player.isShiftKeyDown()){
                           if(!assembled) return ItemInteractionResult.SUCCESS;
-            if(getBlockState().getValue(AttachedBlock.ASSEMBLED)) return ItemInteractionResult.SUCCESS;
-
-            //this.getLevel().setBlockAndUpdate(this.getBlockPos(), this.getBlockState().setValue(AttachedBlock.ASSEMBLED, true));
 
             SubLevel subLevel = Sable.HELPER.getContaining(this);
             if(subLevel == null) return ItemInteractionResult.SUCCESS;
@@ -181,7 +179,7 @@ public class AttachedBE extends SmartBlockEntity implements BlockEntitySubLevelA
         BlockEntitySubLevelActor.super.sable$physicsTick(subLevel, handle, timeStep);
 
         if(constraint != null){
-            constraint.physicsTick(subLevel, handle, worldPosition);
+            constraint.physicsTick(subLevel, handle, worldPosition, getBlockState());
         }
 
         subLevel.enableIndividualQueuedForcesTracking(true);
@@ -191,6 +189,10 @@ public class AttachedBE extends SmartBlockEntity implements BlockEntitySubLevelA
         Entity entity = subLevel.getLevel().getEntity(attachedPlayer);
         if(!(entity instanceof Player player)) return;
         if(!(player instanceof ServerPlayer serverPlayer)) return;
+
+        if(!PlayerPhysicHandler.isSublevelAttached(subLevel)){
+            PlayerPhysicHandler.sublevelToPlayer.put(subLevel.getUniqueId(), attachedPlayer);
+        }
 
         Vec3 target = PlayerPhysicHandler.getTarget(serverPlayer);
 

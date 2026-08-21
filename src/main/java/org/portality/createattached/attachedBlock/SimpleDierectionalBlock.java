@@ -22,12 +22,16 @@ public class SimpleDierectionalBlock extends DirectionalBlock implements IWrench
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {
+        super.createBlockStateDefinition(pBuilder);
         pBuilder.add(FACING);
     }
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         Direction facing = context.getNearestLookingDirection();
+
+        if (context.getPlayer() != null && context.getPlayer().isShiftKeyDown()) facing = facing.getOpposite();
+
         return defaultBlockState().setValue(FACING, facing);
     }
 }

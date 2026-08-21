@@ -19,11 +19,10 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3d;
 import org.portality.createattached.Createattached;
-import org.portality.createattached.attachedBlock.AttachedIndex;
+import org.portality.createattached.AttachedIndex;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 public class PlayerPhysicHandler {
@@ -35,8 +34,8 @@ public class PlayerPhysicHandler {
     private static final double PLAYER_WEIGHT_KPG = 10;
     private static final double MAX_HANDLING_KPG = 20;
 
-    private static final ResourceLocation OVERLOAD_SPEED_ID = ResourceLocation.fromNamespaceAndPath(Createattached.MODID, "overload_speed");
-    private static final ResourceLocation OVERLOAD_JUMP_ID = ResourceLocation.fromNamespaceAndPath(Createattached.MODID, "overload_jump");
+    public static final ResourceLocation OVERLOAD_SPEED_ID = ResourceLocation.fromNamespaceAndPath(Createattached.MODID, "overload_speed");
+    public static final ResourceLocation OVERLOAD_JUMP_ID = ResourceLocation.fromNamespaceAndPath(Createattached.MODID, "overload_jump");
 
     public static void put(SubLevel subLevel, Player player){
         sublevelToPlayer.put(subLevel.getUniqueId(), player.getUUID());
@@ -193,6 +192,8 @@ public class PlayerPhysicHandler {
                         AttributeModifier.Operation.ADD_MULTIPLIED_BASE
                 ));
             }
+
+
 
         } else {
             var movementInstance = serverPlayer.getAttribute(Attributes.MOVEMENT_SPEED);

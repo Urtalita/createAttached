@@ -1,12 +1,12 @@
 package org.portality.createattached.attachedBlock;
 
-import dev.ryanhcode.sable.api.sublevel.SubLevelContainer;
-import dev.ryanhcode.sable.sublevel.ServerSubLevel;
-import dev.ryanhcode.sable.sublevel.SubLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
@@ -15,10 +15,10 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.Nullable;
+import org.portality.createattached.AttachedIndex;
 
-import java.util.UUID;
-
-import static org.portality.createattached.physics.PlayerPhysicHandler.getAttachedServerSubLevel;
+import static org.portality.createattached.physics.PlayerPhysicHandler.OVERLOAD_JUMP_ID;
+import static org.portality.createattached.physics.PlayerPhysicHandler.OVERLOAD_SPEED_ID;
 
 public class AttachedItem extends BlockItem {
     public AttachedItem(Block block, Properties properties) {
@@ -49,6 +49,18 @@ public class AttachedItem extends BlockItem {
         BlockEntity entity = serverLevel.getBlockEntity(position);
         if(entity instanceof AttachedBE attachedBE){
             serverLevel.setBlock(position, Blocks.AIR.defaultBlockState(), 3);
+        }
+    }
+
+    public static void cleanAttributes(ServerPlayer serverPlayer){
+        var movementInstance = serverPlayer.getAttribute(Attributes.MOVEMENT_SPEED);
+        if (movementInstance != null) {
+            movementInstance.removeModifier(OVERLOAD_SPEED_ID);
+        }
+
+        var jumpingInstance = serverPlayer.getAttribute(Attributes.JUMP_STRENGTH);
+        if (jumpingInstance != null) {
+            jumpingInstance.removeModifier(OVERLOAD_JUMP_ID);
         }
     }
 }

@@ -2,16 +2,14 @@ package org.portality.createattached;
 
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.event.entity.living.LivingEquipmentChangeEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
-import org.portality.createattached.attachedBlock.AttachedIndex;
 import org.portality.createattached.attachedBlock.AttachedItem;
-import org.portality.createattached.physics.PlayerPhysicHandler;
 
 @EventBusSubscriber
 public class CommonEvents {
@@ -46,6 +44,10 @@ public class CommonEvents {
                 if(oldStack.is(AttachedIndex.ATTACHED_BLOCK.asItem())){
                     if(event.getEntity().level() instanceof ServerLevel serverLevel){
                         AttachedItem.unequip(oldStack, serverLevel);
+
+                        if(event.getEntity() instanceof ServerPlayer serverPlayer){
+                            AttachedItem.cleanAttributes(serverPlayer);
+                        }
                     }
                 }
             }

@@ -5,7 +5,6 @@ import com.simibubi.create.foundation.item.ItemDescription;
 import com.simibubi.create.foundation.item.KineticStats;
 import com.simibubi.create.foundation.item.TooltipModifier;
 import dev.ryanhcode.sable.platform.SableEventPlatform;
-import dev.simulated_team.simulated.events.SimulatedCommonEvents;
 import net.createmod.catnip.lang.FontHelper;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -23,7 +22,6 @@ import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.portality.createattached.attachedBlock.AttachedBE;
-import org.portality.createattached.attachedBlock.AttachedIndex;
 import org.portality.createattached.network.AttachedPackets;
 
 @Mod(Createattached.MODID)

@@ -1,5 +1,7 @@
 {
   "itemGroup.createattached": "Example Mod Tab",
-  "block.createattached.example_block": "Example Block",
-  "item.createattached.example_item": "Example Item"
+  "block.createattached.attached_block": "Player connector",
+  "creativetab.createattached_tab": "Create: Attached",
+
+  "block.createattached.attached_block.tooltip.summary": "_(alpha)_ RBM to _assemble structure containig this block_, than _shift click_ to _attach_ it, to _detach sublevel_ unequip this block from _chestplate slot_"
 }

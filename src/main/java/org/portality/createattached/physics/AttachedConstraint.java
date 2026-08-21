@@ -20,9 +20,11 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Quaterniond;
 import org.joml.Vector3d;
+import org.portality.createattached.attachedBlock.AttachedBlock;
 
 import javax.annotation.Nullable;
 import java.util.UUID;
@@ -46,7 +48,7 @@ public class AttachedConstraint {
         this.constraintHandle = constraintHandle;
     }
 
-    public void physicsTick(ServerSubLevel subLevel, RigidBodyHandle handle, BlockPos pos) {
+    public void physicsTick(ServerSubLevel subLevel, RigidBodyHandle handle, BlockPos pos, BlockState state) {
         ServerLevel level = subLevel.getLevel();
 
         this.removeJoint();
@@ -63,19 +65,14 @@ public class AttachedConstraint {
 
         Vector3d constraintPosition = new Vector3d(pos.getX() + 0.5d, pos.getY() + 0.5d, pos.getZ() + 0.5d);
 
-        double yawRad = Math.toRadians(-PlayerPhysicHandler.getBodyRotation(player));
-        boolean shifting = player.isShiftKeyDown();
-        double xRad = Math.toRadians((shifting) ? 30 : 0);
-
-        Direction facing = Direction.NORTH;
-
-        boolean axisAlongFirst = true; //state.getValue(AbstractDirectionalAxisBlock.AXIS_ALONG_FIRST_COORDINATE);
+        Direction facing = state.getValue(AttachedBlock.FACING);
 
         Vector3d forward = new Vector3d(
                 facing.getStepX(),
                 facing.getStepY(),
                 facing.getStepZ()
         );
+
         Vector3d up = Math.abs(forward.y) > 0.999D
                 ? new Vector3d(0, 0, 1)
                 : new Vector3d(0, 1, 0);
@@ -83,19 +80,14 @@ public class AttachedConstraint {
                 .lookAlong(forward, up)
                 .rotateY(Math.PI);
 
-        if (!axisAlongFirst) {
-            switch (facing) {
-                case NORTH, SOUTH ->
-                        initialRot.rotateZ((Math.PI / 2.0D) * (facing.equals(Direction.NORTH) ? 1 : -1));
-                case UP, DOWN ->
-                        initialRot.rotateY((Math.PI / 2.0D) * (facing.equals(Direction.UP) ? 1 : -1));
-            }
-        } else {
-            switch (facing) {
-                case EAST, WEST ->
-                        initialRot.rotateX((Math.PI / 2.0D) * (facing.equals(Direction.EAST) ? 1 : -1));
-            }
-        }
+        double degRotation = PlayerPhysicHandler.getBodyRotation(player);
+
+        if(facing.getAxis() == Direction.Axis.Y) degRotation += 180;
+
+        double yawRad = Math.toRadians(Mth.wrapDegrees(-degRotation));
+        boolean shifting = player.isShiftKeyDown();
+        double xRad = Math.toRadians((shifting) ? 30 : 0);
+
 
         final double MAX_Y_COORDINATE = 1000.0D;
         boolean validConstraintGoal = !Double.isNaN(constraintGoal.y) && !Double.isInfinite(constraintGoal.y) && Math.abs(constraintGoal.y) <= MAX_Y_COORDINATE;

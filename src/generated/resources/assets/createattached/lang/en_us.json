@@ -1,3 +1,4 @@
 {
-  "block.createattached.attached_block": "Attached item"
+  "block.createattached.attached_block": "Attached item",
+  "creativetab.createattached_tab": "Create: Attached"
 }
