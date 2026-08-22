@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": {
+    "item": "create:mechanical_bearing"
+  },
+  "result": {
+    "count": 1,
+    "id": "createattached:attached_block"
+  }
+}

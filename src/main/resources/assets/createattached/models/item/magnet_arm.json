@@ -1,0 +1,77 @@
+{
+	"format_version": "1.9.0",
+	"credit": "Made with Blockbench",
+	"textures": {
+		"0": "createattached:block/magnet_armour_copper",
+		"1": "createattached:block/magnet_armour_steel",
+		"particle": "createattached:block/magnet_armour_copper"
+	},
+	"elements": [
+		{
+			"name": "left_layer2",
+			"from": [-1, -0.5, 5],
+			"to": [5, 13.5, 11],
+			"rotation": {"angle": 0, "axis": "y", "origin": [8, -11.5, 8]},
+			"faces": {
+				"north": {"uv": [10, 10.5, 12, 16], "rotation": 180, "texture": "#1"},
+				"east": {"uv": [14, 10.5, 16, 16], "rotation": 180, "texture": "#1"},
+				"south": {"uv": [12, 10.5, 14, 16], "rotation": 180, "texture": "#1"},
+				"west": {"uv": [8, 10.5, 10, 16], "rotation": 180, "texture": "#1"},
+				"up": {"uv": [12, 10.5, 10, 8.5], "rotation": 180, "texture": "#1"},
+				"down": {"uv": [14, 8.5, 12, 10.5], "rotation": 180, "texture": "#1"}
+			}
+		},
+		{
+			"name": "left_layer1",
+			"from": [-0.6, -0.1, 5.4],
+			"to": [4.6, 13.1, 10.6],
+			"rotation": {"angle": 0, "axis": "y", "origin": [0, -11, 0]},
+			"faces": {
+				"north": {"uv": [11, 16, 12, 10], "rotation": 180, "texture": "#0"},
+				"east": {"uv": [10, 16, 11, 10], "rotation": 180, "texture": "#0"},
+				"south": {"uv": [13, 16, 14, 10], "rotation": 180, "texture": "#0"},
+				"west": {"uv": [12, 16, 13, 10], "rotation": 180, "texture": "#0"},
+				"up": {"uv": [12, 10, 11, 8], "rotation": 180, "texture": "#0"},
+				"down": {"uv": [13, 8, 12, 10], "rotation": 180, "texture": "#0"}
+			}
+		},
+		{
+			"name": "left_inner1",
+			"from": [4.6, 13.1, 10.6],
+			"to": [-0.6, -0.1, 5.4],
+			"rotation": {"angle": 0, "axis": "y", "origin": [8, -11.5, 8]},
+			"faces": {
+				"north": {"uv": [12, 10, 11, 16], "rotation": 180, "texture": "#0"},
+				"east": {"uv": [13, 10, 12, 16], "rotation": 180, "texture": "#0"},
+				"south": {"uv": [11, 10, 10, 16], "rotation": 180, "texture": "#0"},
+				"west": {"uv": [14, 10, 13, 16], "rotation": 180, "texture": "#0"},
+				"up": {"uv": [12, 8, 13, 10], "rotation": 180, "texture": "#0"},
+				"down": {"uv": [11, 10, 12, 8], "rotation": 180, "texture": "#0"}
+			}
+		}
+	],
+	"groups": [
+		{
+			"name": "shoulderpads",
+			"origin": [0, 1, 0],
+			"scope": 0,
+			"color": 0,
+			"children": [
+				{
+					"name": "layer2",
+					"origin": [8, 8, 8],
+					"scope": 0,
+					"color": 0,
+					"children": [0]
+				},
+				{
+					"name": "layer1",
+					"origin": [0, 1, 0],
+					"scope": 0,
+					"color": 0,
+					"children": [1, 2]
+				}
+			]
+		}
+	]
+}

@@ -8,19 +8,26 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import org.portality.createattached.AttachedIndex;
+import org.portality.createattached.index.AttachedIndex;
 import org.portality.createattached.HitboxHelper;
 
 public class AttachedBlock extends SimpleDierectionalBlock implements IBE<AttachedBE> {
+    public static final BooleanProperty ASSEMBLED = BooleanProperty.create("assembled");
+
     public AttachedBlock(Properties p_49795_) {
         super(p_49795_);
     }
@@ -49,6 +56,13 @@ public class AttachedBlock extends SimpleDierectionalBlock implements IBE<Attach
     }
 
     @Override
+    protected RenderShape getRenderShape(BlockState state) {
+        boolean shape = state.getValue(ASSEMBLED);
+        if(shape) return RenderShape.INVISIBLE;
+        return super.getRenderShape(state);
+    }
+
+    @Override
     protected void onRemove(BlockState p_60515_, Level level, BlockPos pos, BlockState p_60518_, boolean p_60519_) {
         withBlockEntityDo(level, pos, AttachedBE::onRemove);
         super.onRemove(p_60515_, level, pos, p_60518_, p_60519_);
@@ -62,5 +76,20 @@ public class AttachedBlock extends SimpleDierectionalBlock implements IBE<Attach
     @Override
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand p_316595_, BlockHitResult p_316140_) {
         return onBlockEntityUseItemOn(level, pos, b -> b.clickedOn(player));
+    }
+
+    @Override
+    public BlockState getStateForPlacement(BlockPlaceContext context) {
+        Direction facing = context.getNearestLookingDirection();
+
+        if (context.getPlayer() != null && context.getPlayer().isShiftKeyDown()) facing = facing.getOpposite();
+
+        return defaultBlockState().setValue(FACING, facing).setValue(ASSEMBLED, false);
+    }
+
+    @Override
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {
+        pBuilder.add(ASSEMBLED);
+        super.createBlockStateDefinition(pBuilder);
     }
 }

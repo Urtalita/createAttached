@@ -1,4 +1,8 @@
 {
-  "block.createattached.attached_block": "Attached item",
-  "creativetab.createattached_tab": "Create: Attached"
+  "block.createattached.attached_block": "Attached Block",
+  "item.createattached.entity_connector": "Entity Connector",
+  "item.createattached.magnet_boots": "Magnet Boots",
+  "item.createattached.magnet_chestplate": "Magnet Chestplate",
+  "item.createattached.magnet_helmet": "Magnet Helmet",
+  "item.createattached.magnet_leggings": "Magnet Leggings"
 }

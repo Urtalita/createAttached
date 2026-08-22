@@ -1,10 +1,17 @@
-// 1.21.1	2026-08-21T16:39:11.8587587	Registrate Provider for createattached [Registries, Data Maps, Recipes, Advancements, Loot Tables, Tags (blocks), Tags (enchantments), Tags (items), Tags (fluids), Tags (entity_types), generic_server_provider, Blockstates, Item models, Lang (en_us/en_ud), generic_client_provider]
-9f36c86580d841c479bc2ada995725600636256c assets/createattached/blockstates/attached_block.json
-fed9fe7e922b4957b8e1ba64429f582c7d721df4 assets/createattached/lang/en_ud.json
-ed1715bba423f000d169dbbe77e5f89e2441bbbf assets/createattached/lang/en_us.json
+// 1.21.1	2026-08-22T15:44:55.2589447	Registrate Provider for createattached [Registries, Data Maps, Recipes, Advancements, Loot Tables, Tags (blocks), Tags (enchantments), Tags (items), Tags (fluids), Tags (entity_types), generic_server_provider, Blockstates, Item models, Lang (en_us/en_ud), generic_client_provider]
+2aeed16e9626ed3da2620a5a680541aedf0e228e assets/createattached/blockstates/attached_block.json
+c9f4cdf895d3dd03ab42f04dbe3f17df62c4d99f assets/createattached/lang/en_ud.json
+e4a741ee9ab9c53bebe238e6352b12c65de5bd35 assets/createattached/lang/en_us.json
 8fe82b6835f5d33371d003a3531a005a4a6fde99 assets/createattached/models/item/attached_block.json
+1cae8e9423a33c1677767506d94b046c2bbc5bc8 assets/createattached/models/item/entity_connector.json
+c73e957d5208c71380a2f64f8bb6004a4030107f assets/createattached/models/item/magnet_boots.json
+12a927ff5ce77550c239f8e0bd8f630e25e4773f assets/createattached/models/item/magnet_chestplate.json
+7c3e184268e6100275fecc5f6283b8ffc1da2c59 assets/createattached/models/item/magnet_helmet.json
+5489673270b0338143de2faa44bab023d2d05c36 assets/createattached/models/item/magnet_leggings.json
 fa295a1e7333da8e8abee0dea5deb2c61b4e4cef data/createattached/advancement/recipes/misc/attached_block.json
+ce83bd580beac19f5fed19210695fe73c2afc8d9 data/createattached/advancement/recipes/misc/entity_connector.json
 967dd24c13bc43e0827691ce14d7c6f03f47b3bd data/createattached/loot_table/blocks/attached_block.json
 1ec4060ad12b3eef39d51e48f5226a4444fe0fd5 data/createattached/recipe/attached_block.json
+58d212316da817e151bc612058e0f004c1709c5a data/createattached/recipe/entity_connector.json
 e084c913a895d13e735b5cfc26974e42236854ed data/minecraft/tags/block/mineable/axe.json
 e084c913a895d13e735b5cfc26974e42236854ed data/minecraft/tags/block/mineable/pickaxe.json

@@ -1,3 +1,8 @@
 {
-  "block.createattached.attached_block": "ɯǝʇı pǝɥɔɐʇʇⱯ"
+  "block.createattached.attached_block": "ʞɔoןᗺ pǝɥɔɐʇʇⱯ",
+  "item.createattached.entity_connector": "ɹoʇɔǝuuoƆ ʎʇıʇuƎ",
+  "item.createattached.magnet_boots": "sʇooᗺ ʇǝubɐW",
+  "item.createattached.magnet_chestplate": "ǝʇɐןdʇsǝɥƆ ʇǝubɐW",
+  "item.createattached.magnet_helmet": "ʇǝɯןǝH ʇǝubɐW",
+  "item.createattached.magnet_leggings": "sbuıbbǝꞀ ʇǝubɐW"
 }

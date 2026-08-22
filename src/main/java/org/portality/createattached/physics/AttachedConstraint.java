@@ -18,6 +18,8 @@ import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.state.BlockState;
@@ -30,8 +32,8 @@ import javax.annotation.Nullable;
 import java.util.UUID;
 
 public class AttachedConstraint {
-    private final UUID playerId;
-    private float scrollDistance;
+    private final UUID entityId;
+    private final float scrollDistance;
     private final Vector3d localGoal = new Vector3d();
     private final Quaterniond orientation = new Quaterniond();
     private @Nullable PhysicsConstraintHandle constraintHandle;
@@ -41,9 +43,9 @@ public class AttachedConstraint {
 
     final static double angleTolerance = Math.cos(Math.toRadians(5));
 
-    public AttachedConstraint(final UUID playerId, final float scrollDistance, final PhysicsConstraintHandle constraintHandle) {
+    public AttachedConstraint(final UUID entityId, final float scrollDistance, final PhysicsConstraintHandle constraintHandle) {
         super();
-        this.playerId = playerId;
+        this.entityId = entityId;
         this.scrollDistance = scrollDistance;
         this.constraintHandle = constraintHandle;
     }
@@ -52,16 +54,17 @@ public class AttachedConstraint {
         ServerLevel level = subLevel.getLevel();
 
         this.removeJoint();
-        Player player = level != null ? level.getPlayerByUUID(this.playerId) : null;
-        if (player == null) return;
+        Entity entity = level != null ? level.getEntity(this.entityId) : null;
+        if (entity == null) return;
+        if(!(entity instanceof LivingEntity livingEntity)) return;
 
-        boolean isJumping = (player.getDeltaMovement().y > 0 || player.getDeltaMovement().y < 0) && !player.onGround();
-        if (!(player.onGround() || isJumping || player.isInWater() || player.getAbilities().flying || player.onClimbable())) return;
+        boolean isJumping = (livingEntity.getDeltaMovement().y > 0 || livingEntity.getDeltaMovement().y < 0) && !livingEntity.onGround();
+        //if (!(livingEntity.onGround() || isJumping || livingEntity.isInWater() || livingEntity.fl || player.onClimbable())) return;
 
-        SubLevel standingSubLevel = Sable.HELPER.getTrackingSubLevel(player);
+        SubLevel standingSubLevel = Sable.HELPER.getTrackingSubLevel(livingEntity);
         if (standingSubLevel == subLevel) return;
 
-        Vector3d constraintGoal = JOMLConversion.toJOML(player.getEyePosition().add(player.getLookAngle().scale(Math.max((double)2.0F, (double)this.scrollDistance))));
+        Vector3d constraintGoal = JOMLConversion.toJOML(livingEntity.getEyePosition().add(livingEntity.getLookAngle().scale(Math.max((double)2.0F, (double)this.scrollDistance))));
 
         Vector3d constraintPosition = new Vector3d(pos.getX() + 0.5d, pos.getY() + 0.5d, pos.getZ() + 0.5d);
 
@@ -80,12 +83,18 @@ public class AttachedConstraint {
                 .lookAlong(forward, up)
                 .rotateY(Math.PI);
 
-        double degRotation = PlayerPhysicHandler.getBodyRotation(player);
+        double degRotation = 0;
+        boolean shifting = false;
+        if(livingEntity instanceof ServerPlayer player){
+            degRotation = PlayerPhysicHandler.getBodyRotation(player);
+            shifting = player.isShiftKeyDown();
+        } else {
+            degRotation = LivingEntityPhysicsHandler.getRotation(livingEntity);
+        }
 
         if(facing.getAxis() == Direction.Axis.Y) degRotation += 180;
 
         double yawRad = Math.toRadians(Mth.wrapDegrees(-degRotation));
-        boolean shifting = player.isShiftKeyDown();
         double xRad = Math.toRadians((shifting) ? 30 : 0);
 
 
@@ -95,10 +104,6 @@ public class AttachedConstraint {
 
         if (!(validConstraintGoal || validConstraintPosition)) return;
 
-        double validRange = player.getAttribute(Attributes.BLOCK_INTERACTION_RANGE).getValue() + (double)2.0F;
-        double currentDistance = Sable.HELPER.distanceSquaredWithSubLevels(level, constraintGoal, constraintPosition);
-        if (!(!Mth.equal(-1.0F, this.scrollDistance) && !(currentDistance > validRange * validRange))) return;
-
         ServerSubLevelContainer container = SubLevelContainer.getContainer(subLevel.getLevel());
 
         assert container != null;
@@ -106,7 +111,7 @@ public class AttachedConstraint {
         SubLevelPhysicsSystem physicsSystem = container.physicsSystem();
         Quaterniond quaterniond = new Quaterniond().rotateX(-xRad).rotateY(-yawRad).invert().mul(initialRot);
         this.orientation.set(quaterniond);
-        this.orientation.transformInverse(JOMLConversion.toJOML(player.getEyePosition()));
+        this.orientation.transformInverse(JOMLConversion.toJOML(livingEntity.getEyePosition()));
         FreeConstraintConfiguration configuration = new FreeConstraintConfiguration(new Vector3d(0f, 0, 0f), constraintPosition, this.orientation);// quaterniond);
 
         this.constraintHandle = physicsSystem.getPipeline().addConstraint(null, subLevel, configuration);
@@ -123,7 +128,7 @@ public class AttachedConstraint {
             this.constraintHandle.setMotor(axis, 0.0, angularStiffness, angularDamping, true, maxForce);
         }
 
-        Vec3 goal = PlayerPhysicHandler.getTarget((ServerPlayer) player);
+        Vec3 goal = PlayerPhysicHandler.getTarget(livingEntity);
         localGoal.set(goal.toVector3f());
         orientation.transformInverse(localGoal);
 
@@ -139,7 +144,7 @@ public class AttachedConstraint {
 
          */
 
-        applyForceToAttachedPlayer(subLevel, handle, pos, (ServerPlayer) player);
+        //applyForceToAttachedPlayer(subLevel, handle, pos, (ServerPlayer) player);
     }
 
     public void applyForceToAttachedPlayer(ServerSubLevel subLevel, RigidBodyHandle handle,

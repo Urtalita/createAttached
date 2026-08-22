@@ -11,6 +11,7 @@ import dev.ryanhcode.sable.api.physics.handle.RigidBodyHandle;
 import dev.ryanhcode.sable.api.sublevel.ServerSubLevelContainer;
 import dev.ryanhcode.sable.companion.math.BoundingBox3d;
 import dev.ryanhcode.sable.physics.config.dimension_physics.DimensionPhysicsData;
+import dev.ryanhcode.sable.sublevel.ClientSubLevel;
 import dev.ryanhcode.sable.sublevel.ServerSubLevel;
 import dev.ryanhcode.sable.sublevel.SubLevel;
 import dev.ryanhcode.sable.sublevel.system.SubLevelPhysicsSystem;
@@ -27,6 +28,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -38,8 +40,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
-import org.portality.createattached.AttachedIndex;
+import org.portality.createattached.index.AttachedIndex;
 import org.portality.createattached.network.SyncBodyAnglePayload;
+import org.portality.createattached.physics.LivingEntityPhysicsHandler;
 import org.portality.createattached.physics.PlayerPhysicHandler;
 import org.portality.createattached.physics.AttachedConstraint;
 
@@ -53,7 +56,15 @@ public class AttachedBE extends SmartBlockEntity implements BlockEntitySubLevelA
     AttachedConstraint constraint = null;
 
     @NotNull
-    private UUID attachedPlayer = UUID.randomUUID();
+    private UUID attachedEntity = UUID.randomUUID();
+
+    public void setConstraint(@Nullable AttachedConstraint constraint) {
+        this.constraint = constraint;
+    }
+
+    public void setAttachedEntity(@NotNull UUID attachedEntity) {
+        this.attachedEntity = attachedEntity;
+    }
 
     public AttachedBE(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -72,6 +83,8 @@ public class AttachedBE extends SmartBlockEntity implements BlockEntitySubLevelA
             Player player = Minecraft.getInstance().player;
             if(player == null) return;
 
+            fixSublevelClientPosition();
+
             if(!(Minecraft.getInstance().level.getGameTime() % SyncBodyAnglePayload.TICKS_BETWEEN_PACKETS == 0)) return;
 
             float yBodyRotation = player.yBodyRot;
@@ -88,6 +101,15 @@ public class AttachedBE extends SmartBlockEntity implements BlockEntitySubLevelA
             subLevel.markRemoved();
             return;
         }
+    }
+
+    public void fixSublevelClientPosition(){
+        ClientSubLevel clientSubLevel = (ClientSubLevel) Sable.HELPER.getContaining(this);
+
+        if (Minecraft.getInstance().player == null) return;
+        Player player = Minecraft.getInstance().player;
+        Vec3 playerMovement = player.getDeltaMovement();
+
 
     }
 
@@ -100,21 +122,21 @@ public class AttachedBE extends SmartBlockEntity implements BlockEntitySubLevelA
         assembled = subLevel != null;
         followingPlayer = tag.getBoolean("following");
 
-        attachedPlayer = tag.getUUID("player");
+        attachedEntity = tag.getUUID("player");
 
         if(followingPlayer && constraint == null){
-            constraint = new AttachedConstraint(attachedPlayer, 1, null);
+            constraint = new AttachedConstraint(attachedEntity, 1, null);
         }
     }
 
     public void onRemove(){
-        PlayerPhysicHandler.sublevelToPlayer.remove(attachedPlayer);
+        PlayerPhysicHandler.sublevelToEntity.remove(attachedEntity);
     }
 
     @Override
     protected void write(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
 
-        tag.putUUID("player", attachedPlayer);
+        tag.putUUID("player", attachedEntity);
         tag.putBoolean("following", followingPlayer);
 
         super.write(tag, registries, clientPacket);
@@ -136,12 +158,14 @@ public class AttachedBE extends SmartBlockEntity implements BlockEntitySubLevelA
 
             player.getInventory().armor.set(EquipmentSlot.CHEST.getIndex(), putOnStack);
 
-            this.attachedPlayer = player.getUUID();
+            this.attachedEntity = player.getUUID();
             PlayerPhysicHandler.put(subLevel, player);
             followingPlayer = true;
 
-            constraint = new AttachedConstraint(attachedPlayer, 1, null);
+            constraint = new AttachedConstraint(attachedEntity, 1, null);
             sendData();
+
+            level.setBlockAndUpdate(worldPosition, getBlockState().setValue(AttachedBlock.ASSEMBLED, true));
 
             return ItemInteractionResult.SUCCESS;
         }
@@ -186,15 +210,14 @@ public class AttachedBE extends SmartBlockEntity implements BlockEntitySubLevelA
 
         if(subLevel == null) return;
 
-        Entity entity = subLevel.getLevel().getEntity(attachedPlayer);
-        if(!(entity instanceof Player player)) return;
-        if(!(player instanceof ServerPlayer serverPlayer)) return;
+        Entity entity = subLevel.getLevel().getEntity(attachedEntity);
+        if(entity == null) return;
 
         if(!PlayerPhysicHandler.isSublevelAttached(subLevel)){
-            PlayerPhysicHandler.sublevelToPlayer.put(subLevel.getUniqueId(), attachedPlayer);
+            PlayerPhysicHandler.sublevelToEntity.put(subLevel.getUniqueId(), attachedEntity);
         }
 
-        Vec3 target = PlayerPhysicHandler.getTarget(serverPlayer);
+        Vec3 target = PlayerPhysicHandler.getTarget(entity);
 
         BlockPos anchor = worldPosition;
         if(anchor == null) return;
@@ -214,13 +237,13 @@ public class AttachedBE extends SmartBlockEntity implements BlockEntitySubLevelA
         subLevel.applyQueuedForces(SubLevelPhysicsSystem.get(subLevel.getLevel()), handle, 1);
         subLevel.updateLastPose();
 
-        PlayerPhysicHandler.pullPlayerToContraption(serverPlayer, subLevel, worldPosition);
+        //PlayerPhysicHandler.pullPlayerToContraption(serverPlayer, subLevel, worldPosition);
     }
 
     public static void onPostPhysicsTick(final SubLevelPhysicsSystem physicsSystem, final double timeStep) {
         if(!(physicsSystem.getLevel() instanceof ServerLevel serverLevel)) return;
 
-        for(Map.Entry<UUID, UUID> entry : PlayerPhysicHandler.sublevelToPlayer.entrySet()){
+        for(Map.Entry<UUID, UUID> entry : PlayerPhysicHandler.sublevelToEntity.entrySet()){
             UUID subLevel = entry.getKey();
 
             SubLevel sub = PlayerPhysicHandler.getAttachedSubLevel(subLevel, serverLevel);
@@ -232,10 +255,8 @@ public class AttachedBE extends SmartBlockEntity implements BlockEntitySubLevelA
         if(!(physicsSystem.getLevel() instanceof ServerLevel serverLevel)) return;
 
         if(subLevel == null) return;
-        Entity entity = serverLevel.getEntity(attachedPlayer);
-        if(!(entity instanceof Player player)) return;
-        if(!(player instanceof ServerPlayer serverPlayer)) return;
         if(!(subLevel instanceof ServerSubLevel serverSubLevel)) return;
+        Entity entity = serverLevel.getEntity(attachedPlayer);
 
         final Object2ObjectMap<ForceGroup, QueuedForceGroup> queuedForceGroups = serverSubLevel.getQueuedForceGroups();
 
@@ -254,7 +275,15 @@ public class AttachedBE extends SmartBlockEntity implements BlockEntitySubLevelA
 
         final Vector3d localGravity = subLevel.logicalPose().transformNormalInverse(DimensionPhysicsData.getGravity(serverLevel)).mul(serverSubLevel.getMassTracker().getMass());
 
-        PlayerPhysicHandler.applyForceToPlayer(resultingMovement, serverPlayer, localGravity, serverSubLevel);
+        if(entity instanceof ServerPlayer serverPlayer) {
+            PlayerPhysicHandler.applyForceToPlayer(resultingMovement, serverPlayer, localGravity, serverSubLevel);
+            return;
+        }
+
+        if(entity instanceof LivingEntity livingEntity){
+            LivingEntityPhysicsHandler.applyForceToEntity(resultingMovement, livingEntity, localGravity, serverSubLevel);
+        }
+
     }
 
     public static class SubLevelAttachedAssemblyHelper implements SubLevelAssemblyHelper.FrontierPredicate {

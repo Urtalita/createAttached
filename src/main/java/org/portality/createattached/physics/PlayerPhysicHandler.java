@@ -19,34 +19,35 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3d;
 import org.portality.createattached.Createattached;
-import org.portality.createattached.AttachedIndex;
+import org.portality.createattached.attachedBlock.AttachedItem;
+import org.portality.createattached.index.AttachedIndex;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.UUID;
 
 public class PlayerPhysicHandler {
-    public static HashMap<UUID, UUID> sublevelToPlayer = new HashMap<>();
+    public static HashMap<UUID, UUID> sublevelToEntity = new HashMap<>();
     public static final HashMap<UUID, UUID> previouslyAddedMovement = new HashMap<>();
 
     private static final HashMap<UUID, Float> serverBodyRotations = new HashMap<>();
 
     private static final double PLAYER_WEIGHT_KPG = 10;
-    private static final double MAX_HANDLING_KPG = 20;
+    private static final double MAX_HANDLING_KPG = 30;
 
     public static final ResourceLocation OVERLOAD_SPEED_ID = ResourceLocation.fromNamespaceAndPath(Createattached.MODID, "overload_speed");
     public static final ResourceLocation OVERLOAD_JUMP_ID = ResourceLocation.fromNamespaceAndPath(Createattached.MODID, "overload_jump");
 
-    public static void put(SubLevel subLevel, Player player){
-        sublevelToPlayer.put(subLevel.getUniqueId(), player.getUUID());
+    public static void put(SubLevel subLevel, Entity entity){
+        sublevelToEntity.put(subLevel.getUniqueId(), entity.getUUID());
     }
 
     public static boolean isPlayerAttached(Player player){
-        return sublevelToPlayer.containsValue(player.getUUID());
+        return sublevelToEntity.containsValue(player.getUUID());
     }
 
     public static boolean isSublevelAttached(SubLevel subLevel){
-        return sublevelToPlayer.containsKey(subLevel.getUniqueId());
+        return sublevelToEntity.containsKey(subLevel.getUniqueId());
     }
 
     @Nullable
@@ -55,7 +56,7 @@ public class PlayerPhysicHandler {
             return Minecraft.getInstance().player;
         }
 
-        UUID playerId = sublevelToPlayer.get(subLevel.getUniqueId());
+        UUID playerId = sublevelToEntity.get(subLevel.getUniqueId());
         if(playerId == null) return null;
         Entity player = serverLevel.getEntity(playerId);
 
@@ -96,17 +97,17 @@ public class PlayerPhysicHandler {
         serverBodyRotations.put(player.getUUID(), rotation);
     }
 
-    public static Vec3 predictNextTickPhysics(ServerPlayer player) {
-        Vec3 currentPos = player.position();
-        Vec3 deltaMovement = player.getDeltaMovement();
+    public static Vec3 predictNextTickPhysics(Entity entity) {
+        Vec3 currentPos = entity.position();
+        Vec3 deltaMovement = entity.getDeltaMovement();
 
-        double gravity = player.isNoGravity() ? 0.0D : 0.08D;
+        double gravity = entity.isNoGravity() ? 0.0D : 0.08D;
         double drag = 0.98D;
 
-        if (player.isInWater()) {
+        if (entity.isInWater()) {
             gravity = 0.02D;
             drag = 0.8D;
-        } else if (player.isInLava()) {
+        } else if (entity.isInLava()) {
             gravity = 0.02D;
             drag = 0.5D;
         }
@@ -116,7 +117,7 @@ public class PlayerPhysicHandler {
         double nextMotionZ = deltaMovement.z * drag;
 
 
-        if (player.onGround() && nextMotionY < 0) {
+        if (entity.onGround() && nextMotionY < 0) {
             nextMotionY = 0;
         }
 
@@ -126,8 +127,8 @@ public class PlayerPhysicHandler {
     }
 
 
-    public static Vec3 getTarget(ServerPlayer player){
-        return predictNextTickPhysics(player).add(0, player.getEyeHeight(), 0).add(0, -0.5f, 0);
+    public static Vec3 getTarget(Entity entity){
+        return predictNextTickPhysics(entity).add(0, entity.getEyeHeight(), 0).add(0, -0.5f, 0);
     }
 
     @Nullable
@@ -152,7 +153,7 @@ public class PlayerPhysicHandler {
         Vector3d movement = serverSubLevel.logicalPose().orientation().transform(new Vector3d(localForce.x, localForce.y, localForce.z));
         Vector3d movementAfterGravity = serverSubLevel.logicalPose().orientation().transform(new Vector3d(localForce.x, localForce.y, localForce.z).add(localGravity));
 
-        Vec3 resultingAffectingPlayer = new Vec3(0, 0, 0);
+        Vec3 resultingAffectingPlayer;
         double playerOverload = 0;
 
         if(movementAfterGravity.y() < 0){
@@ -162,13 +163,28 @@ public class PlayerPhysicHandler {
             resultingAffectingPlayer = new Vec3(movementAfterGravity.x(), movementAfterGravity.y(), movementAfterGravity.z());
         }
 
+        applyAttributes(serverPlayer, playerOverload);
+
+        Vec3 scaledForce = resultingAffectingPlayer.scale(1d /((PLAYER_WEIGHT_KPG + serverSubLevel.getMassTracker().getMass()) * 10));
+
+        serverPlayer.addDeltaMovement(scaledForce);
+        if(scaledForce.length() <= 0.01) return;
+        serverPlayer.hurtMarked = true;
+    }
+
+    public static void applyAttributes(ServerPlayer serverPlayer, double playerOverload){
         playerOverload = playerOverload / 10d;
 
+        if(serverPlayer.getAbilities().flying){
+            AttachedItem.cleanAttributes(serverPlayer);
+            return;
+        }
+
         if (playerOverload > 0) {
+
             double slowDownCoefficient = playerOverload / MAX_HANDLING_KPG;
 
             slowDownCoefficient = Math.max(0.0, Math.min(1.0, slowDownCoefficient));
-
             double modifierValue = -slowDownCoefficient;
 
             var movementInstance = serverPlayer.getAttribute(Attributes.MOVEMENT_SPEED);
@@ -177,7 +193,7 @@ public class PlayerPhysicHandler {
 
                 movementInstance.addTransientModifier(new AttributeModifier(
                         OVERLOAD_SPEED_ID,
-                        modifierValue + 0.3d,
+                        modifierValue,
                         AttributeModifier.Operation.ADD_MULTIPLIED_BASE
                 ));
             }
@@ -192,9 +208,6 @@ public class PlayerPhysicHandler {
                         AttributeModifier.Operation.ADD_MULTIPLIED_BASE
                 ));
             }
-
-
-
         } else {
             var movementInstance = serverPlayer.getAttribute(Attributes.MOVEMENT_SPEED);
             if (movementInstance != null) movementInstance.removeModifier(OVERLOAD_SPEED_ID);
@@ -202,13 +215,6 @@ public class PlayerPhysicHandler {
             var jumpingInstance = serverPlayer.getAttribute(Attributes.JUMP_STRENGTH);
             if (jumpingInstance != null) jumpingInstance.removeModifier(OVERLOAD_JUMP_ID);
         }
-
-        Vec3 scaledForce = resultingAffectingPlayer.scale(1d /((PLAYER_WEIGHT_KPG + serverSubLevel.getMassTracker().getMass()) * 10));
-
-        serverPlayer.addDeltaMovement(scaledForce);
-        serverPlayer.hurtMarked = true;
-
-
     }
 
     public static void pullPlayerToContraption(ServerPlayer player){

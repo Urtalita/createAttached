@@ -1,15 +1,21 @@
 package org.portality.createattached;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingEquipmentChangeEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import org.portality.createattached.attachedBlock.AttachedItem;
+import org.portality.createattached.index.AttachedIndex;
 
 @EventBusSubscriber
 public class CommonEvents {
@@ -50,6 +56,25 @@ public class CommonEvents {
                         }
                     }
                 }
+            }
+        }
+    }
+
+
+    @SubscribeEvent
+    public static void onPlayerEntityInteract(PlayerInteractEvent.EntityInteract event) {
+        if (event.getLevel().isClientSide()) {
+            return;
+        }
+
+        if (event.getTarget() instanceof LivingEntity livingTarget) {
+
+            Player player = event.getEntity();
+            ItemStack itemStack = event.getItemStack();
+
+            itemStack.set(AttachedIndex.ATTACHED_ENTITY, livingTarget.getUUID());
+            if(player instanceof ServerPlayer serverPlayer){
+                serverPlayer.sendSystemMessage(Component.literal("entity UUID has been written to stack data").withStyle(ChatFormatting.GREEN), true);
             }
         }
     }

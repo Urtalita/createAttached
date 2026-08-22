@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "b": {
+      "item": "create:mechanical_bearing"
+    },
+    "r": {
+      "item": "simulated:rope_coupling"
+    }
+  },
+  "pattern": [
+    "  b",
+    " r ",
+    "b  "
+  ],
+  "result": {
+    "count": 1,
+    "id": "createattached:entity_connector"
+  }
+}

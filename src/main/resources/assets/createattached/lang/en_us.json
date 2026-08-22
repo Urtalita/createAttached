@@ -1,7 +1,9 @@
 {
   "itemGroup.createattached": "Example Mod Tab",
   "block.createattached.attached_block": "Player connector",
+  "item.createattached.entity_connector": "Entity connector",
   "creativetab.createattached_tab": "Create: Attached",
 
-  "block.createattached.attached_block.tooltip.summary": "_(alpha)_ RBM to _assemble structure containig this block_, than _shift click_ to _attach_ it, to _detach sublevel_ unequip this block from _chestplate slot_"
+  "block.createattached.attached_block.tooltip.summary": "_(alpha)_ RBM to _assemble structure(must _not_ touch ground) containing this block_, than _shift click_ to _attach_ it, to _detach sublevel_ unequip this block from _chestplate slot_",
+  "item.createattached.entity_connector.tooltip.summary": "_(alpha)_ RBM on _any_ entity with this item, then _RBM on player connector_ that is on _already assembled_ contraption to _attach it to entity_"
 }

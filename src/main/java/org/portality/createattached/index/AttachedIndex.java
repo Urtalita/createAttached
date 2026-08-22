@@ -1,26 +1,36 @@
-package org.portality.createattached;
+package org.portality.createattached.index;
 
 import com.simibubi.create.AllBlocks;
+import com.simibubi.create.AllItems;
 import com.simibubi.create.foundation.data.BlockStateGen;
 import com.simibubi.create.foundation.data.SharedProperties;
 import com.tterrag.registrate.providers.RegistrateRecipeProvider;
 import com.tterrag.registrate.util.entry.BlockEntityEntry;
 import com.tterrag.registrate.util.entry.BlockEntry;
+import com.tterrag.registrate.util.entry.ItemEntry;
+import dev.simulated_team.simulated.index.SimItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.recipes.RecipeCategory;
+import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.data.recipes.SingleItemRecipeBuilder;
+import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.material.MapColor;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.jetbrains.annotations.ApiStatus;
+import org.portality.createattached.Createattached;
 import org.portality.createattached.attachedBlock.AttachedBE;
 import org.portality.createattached.attachedBlock.AttachedBlock;
 import org.portality.createattached.attachedBlock.AttachedItem;
+import org.portality.createattached.attachedBlock.EntityConnectorItem;
+import org.portality.createattached.magneticArmour.MagneticArmourItem;
 
 import java.util.UUID;
 import java.util.function.UnaryOperator;
@@ -64,6 +74,47 @@ public class AttachedIndex {
             "attached_pos",
             builder -> builder.persistent(BlockPos.CODEC).networkSynchronized(BlockPos.STREAM_CODEC)
     );
+
+    public static final DataComponentType<UUID> ATTACHED_ENTITY = register(
+            "attached_entity",
+            builder -> builder.persistent(UUIDUtil.CODEC).networkSynchronized(UUIDUtil.STREAM_CODEC)
+    );
+
+    public static final ItemEntry<MagneticArmourItem> MAGNET_BOOTS = Createattached.ATTACHED_REGISTRATE
+            .item("magnet_boots", (p) -> new MagneticArmourItem(AttachedArmourMaterials.MAGNET, ArmorItem.Type.BOOTS, p))
+            .properties(p -> p.stacksTo(1).fireResistant().rarity(Rarity.EPIC))
+            .register();
+
+    public static final ItemEntry<MagneticArmourItem> MAGNET_LEGGINGS = Createattached.ATTACHED_REGISTRATE
+            .item("magnet_leggings", (p) -> new MagneticArmourItem(AttachedArmourMaterials.MAGNET, ArmorItem.Type.LEGGINGS, p))
+            .properties(p -> p.stacksTo(1).fireResistant().rarity(Rarity.EPIC))
+            .register();
+
+    public static final ItemEntry<MagneticArmourItem> MAGNET_CHEST = Createattached.ATTACHED_REGISTRATE
+            .item("magnet_chestplate", (p) -> new MagneticArmourItem(AttachedArmourMaterials.MAGNET, ArmorItem.Type.CHESTPLATE, p))
+            .properties(p -> p.stacksTo(1).fireResistant().rarity(Rarity.EPIC))
+            .register();
+
+    public static final ItemEntry<MagneticArmourItem> MAGNET_HELMET = Createattached.ATTACHED_REGISTRATE
+            .item("magnet_helmet", (p) -> new MagneticArmourItem(AttachedArmourMaterials.MAGNET, ArmorItem.Type.HELMET, p))
+            .properties(p -> p.stacksTo(1).fireResistant().rarity(Rarity.EPIC))
+            .register();
+
+    public static final ItemEntry<EntityConnectorItem> ENTITY_CONNECTOR = Createattached.ATTACHED_REGISTRATE
+            .item("entity_connector", EntityConnectorItem::new)
+            .properties(p -> p.stacksTo(1).fireResistant().rarity(Rarity.UNCOMMON))
+            .recipe((c, b) ->
+                    ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get(), 1)
+                            .pattern("  b")
+                            .pattern(" r ")
+                            .pattern("b  ")
+                            .define('r', SimItems.ROPE_COUPLING)
+                            .define('b', AllBlocks.MECHANICAL_BEARING)
+                            .unlockedBy("has_ingredient",
+                                    RegistrateRecipeProvider.has(SimItems.ROPE_COUPLING))
+                            .save(b)
+            )
+            .register();
 
     private static <T> DataComponentType<T> register(String name, UnaryOperator<DataComponentType.Builder<T>> builder) {
         DataComponentType<T> type = builder.apply(DataComponentType.builder()).build();

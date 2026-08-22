@@ -1,27 +1,53 @@
 {
   "variants": {
-    "facing=down": {
+    "assembled=false,facing=down": {
       "model": "createattached:block/attached_block",
       "x": 180
     },
-    "facing=east": {
+    "assembled=false,facing=east": {
       "model": "createattached:block/attached_block",
       "x": 90,
       "y": 90
     },
-    "facing=north": {
+    "assembled=false,facing=north": {
       "model": "createattached:block/attached_block",
       "x": 90
     },
-    "facing=south": {
+    "assembled=false,facing=south": {
       "model": "createattached:block/attached_block",
       "x": 90,
       "y": 180
     },
-    "facing=up": {
+    "assembled=false,facing=up": {
       "model": "createattached:block/attached_block"
     },
-    "facing=west": {
+    "assembled=false,facing=west": {
+      "model": "createattached:block/attached_block",
+      "x": 90,
+      "y": 270
+    },
+    "assembled=true,facing=down": {
+      "model": "createattached:block/attached_block",
+      "x": 180
+    },
+    "assembled=true,facing=east": {
+      "model": "createattached:block/attached_block",
+      "x": 90,
+      "y": 90
+    },
+    "assembled=true,facing=north": {
+      "model": "createattached:block/attached_block",
+      "x": 90
+    },
+    "assembled=true,facing=south": {
+      "model": "createattached:block/attached_block",
+      "x": 90,
+      "y": 180
+    },
+    "assembled=true,facing=up": {
+      "model": "createattached:block/attached_block"
+    },
+    "assembled=true,facing=west": {
       "model": "createattached:block/attached_block",
       "x": 90,
       "y": 270
