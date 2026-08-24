@@ -1,5 +1,6 @@
 {
   "block.createattached.attached_block": "Attached Block",
+  "block.createattached.movement_sensor": "Movement sensor",
   "item.createattached.entity_connector": "Entity Connector",
   "item.createattached.magnet_boots": "Magnet Boots",
   "item.createattached.magnet_chestplate": "Magnet Chestplate",

@@ -1,5 +1,6 @@
 {
   "values": [
-    "createattached:attached_block"
+    "createattached:attached_block",
+    "createattached:movement_sensor"
   ]
 }

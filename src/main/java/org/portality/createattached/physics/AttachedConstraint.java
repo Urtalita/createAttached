@@ -39,7 +39,7 @@ public class AttachedConstraint {
     private @Nullable PhysicsConstraintHandle constraintHandle;
 
     final static double stiffnessConstant = 30.0;
-    final static double dampingConstant = 10.0;
+    final static double dampingConstant = 10;
 
     final static double angleTolerance = Math.cos(Math.toRadians(5));
 
@@ -64,7 +64,11 @@ public class AttachedConstraint {
         SubLevel standingSubLevel = Sable.HELPER.getTrackingSubLevel(livingEntity);
         if (standingSubLevel == subLevel) return;
 
-        Vector3d constraintGoal = JOMLConversion.toJOML(livingEntity.getEyePosition().add(livingEntity.getLookAngle().scale(Math.max((double)2.0F, (double)this.scrollDistance))));
+        Vector3d constraintGoal =
+                JOMLConversion.toJOML(livingEntity.getEyePosition().add(livingEntity.getLookAngle().scale(Math.max((double)2.0F, (double)this.scrollDistance))));
+        if(entity instanceof ServerPlayer serverPlayer){
+            constraintGoal = PlayerPhysicHandler.calculateMidPoint(serverPlayer, subLevel, pos);
+        }
 
         Vector3d constraintPosition = new Vector3d(pos.getX() + 0.5d, pos.getY() + 0.5d, pos.getZ() + 0.5d);
 
@@ -125,11 +129,17 @@ public class AttachedConstraint {
         final double angularStiffness = (double) config.physicsStaffAngularStiffness.getF()*stiffnessConstant;
         final double angularDamping = (double) config.physicsStaffAngularDamping.getF()*dampingConstant;
         for (ConstraintJointAxis axis : ConstraintJointAxis.ANGULAR) {
-            this.constraintHandle.setMotor(axis, 0.0, angularStiffness, angularDamping, true, maxForce);
+            this.constraintHandle.setMotor(axis, 0.0, angularStiffness, angularDamping, false, maxForce);
         }
 
         Vec3 goal = PlayerPhysicHandler.getTarget(livingEntity);
         localGoal.set(goal.toVector3f());
+
+        if(entity instanceof ServerPlayer serverPlayer){
+            Vector3d realGoal = PlayerPhysicHandler.calculateMidPoint(serverPlayer, subLevel, pos);
+            localGoal.set(realGoal);
+        }
+
         orientation.transformInverse(localGoal);
 
         final double linearStiffness = (double) config.physicsStaffLinearStiffness.getF()*stiffnessConstant;
@@ -137,12 +147,9 @@ public class AttachedConstraint {
 
         // Linear motors: use goal offsets and moderate stiffness/damping
 
-        /*
-        constraintHandle.setMotor(ConstraintJointAxis.LINEAR_X, localGoal.x(), linearStiffness, linearDamping, true, maxForce);
-        constraintHandle.setMotor(ConstraintJointAxis.LINEAR_Y, localGoal.y(), linearStiffness, linearDamping, true, maxForce);
-        constraintHandle.setMotor(ConstraintJointAxis.LINEAR_Z, localGoal.z(), linearStiffness, linearDamping, true, maxForce);
-
-         */
+        constraintHandle.setMotor(ConstraintJointAxis.LINEAR_X, localGoal.x(), linearStiffness, linearDamping, false, maxForce);
+        constraintHandle.setMotor(ConstraintJointAxis.LINEAR_Y, localGoal.y(), linearStiffness, linearDamping, false, maxForce);
+        constraintHandle.setMotor(ConstraintJointAxis.LINEAR_Z, localGoal.z(), linearStiffness, linearDamping, false, maxForce);
 
         //applyForceToAttachedPlayer(subLevel, handle, pos, (ServerPlayer) player);
     }

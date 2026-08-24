@@ -31,6 +31,9 @@ import org.portality.createattached.attachedBlock.AttachedBlock;
 import org.portality.createattached.attachedBlock.AttachedItem;
 import org.portality.createattached.attachedBlock.EntityConnectorItem;
 import org.portality.createattached.magneticArmour.MagneticArmourItem;
+import org.portality.createattached.movementSensor.MovementSensorBe;
+import org.portality.createattached.movementSensor.MovementSensorBlock;
+import org.portality.createattached.movementSensor.MovementSensorBlockStateGenerator;
 
 import java.util.UUID;
 import java.util.function.UnaryOperator;
@@ -60,10 +63,39 @@ public class AttachedIndex {
                             .save(b))
             .register();
 
+    public static final BlockEntry<MovementSensorBlock> MOVEMENT_SENSOR = Createattached.ATTACHED_REGISTRATE
+            .block("movement_sensor", MovementSensorBlock::new)
+            .lang("Movement sensor")
+            .initialProperties(() -> Blocks.OAK_LOG)
+            .initialProperties(SharedProperties::copperMetal)
+            .properties(p -> p.mapColor(MapColor.TERRACOTTA_WHITE).noOcclusion())
+            .blockstate(new MovementSensorBlockStateGenerator()::generate)
+            .recipe((c, b) ->
+                    ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get(), 1)
+                            .pattern(" a ")
+                            .pattern(" t ")
+                            .pattern(" b ")
+                            .define('a', Items.AMETHYST_SHARD)
+                            .define('t', Blocks.REDSTONE_TORCH)
+                            .define('b', AllBlocks.BRASS_CASING)
+                            .unlockedBy("has_ingredient",
+                                    RegistrateRecipeProvider.has(AllBlocks.BRASS_CASING))
+                            .save(b)
+            )
+            .transform(axeOrPickaxe())
+            .simpleItem()
+            .register();
+
     public static final BlockEntityEntry<AttachedBE> ATTACHED_BE = Createattached.ATTACHED_REGISTRATE
             .blockEntity("attached_be", AttachedBE::new)
             .validBlocks(ATTACHED_BLOCK)
             .register();
+
+    public static final BlockEntityEntry<MovementSensorBe> MOVEMENT_SENSOR_BE = Createattached.ATTACHED_REGISTRATE
+            .blockEntity("movement_sensor_be", MovementSensorBe::new)
+            .validBlocks(MOVEMENT_SENSOR)
+            .register();
+
 
     public static final DataComponentType<UUID> ATTACHED = register(
             "attached",

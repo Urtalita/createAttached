@@ -1,5 +1,5 @@
 {
-  "selector": "createattached:attached_block",
+  "selector": "createattached:movement_sensor",
 
   "properties": {
     "sable:mass": 0.01

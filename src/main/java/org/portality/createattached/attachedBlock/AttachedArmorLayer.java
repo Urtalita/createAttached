@@ -54,7 +54,7 @@ public class AttachedArmorLayer <T extends LivingEntity, M extends EntityModel<T
 
             model.body.translateAndRotate(ms);
 
-            ms.translate(-(8f) / 16f, 13F / 16f, 8/16f);
+            ms.translate(-(8f) / 16f, 13F / 16f, 9/16f);
             ms.scale(1, -1, -1);
 
             chest.center()

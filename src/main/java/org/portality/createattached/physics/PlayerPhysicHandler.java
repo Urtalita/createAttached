@@ -16,9 +16,11 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3d;
 import org.portality.createattached.Createattached;
+import org.portality.createattached.attachedBlock.AttachedBE;
 import org.portality.createattached.attachedBlock.AttachedItem;
 import org.portality.createattached.index.AttachedIndex;
 
@@ -31,6 +33,7 @@ public class PlayerPhysicHandler {
     public static final HashMap<UUID, UUID> previouslyAddedMovement = new HashMap<>();
 
     private static final HashMap<UUID, Float> serverBodyRotations = new HashMap<>();
+    private static final HashMap<UUID, Vector3d> accelerationMap = new HashMap<>();
 
     private static final double PLAYER_WEIGHT_KPG = 10;
     private static final double MAX_HANDLING_KPG = 30;
@@ -128,7 +131,7 @@ public class PlayerPhysicHandler {
 
 
     public static Vec3 getTarget(Entity entity){
-        return predictNextTickPhysics(entity).add(0, entity.getEyeHeight(), 0).add(0, -0.5f, 0);
+        return entity.position().add(0, entity.getEyeHeight(), 0).add(0, -0.5f, 0);
     }
 
     @Nullable
@@ -143,6 +146,25 @@ public class PlayerPhysicHandler {
         if(subLevel == null) return null;
 
         return getSublevelTarget(subLevel, position);
+    }
+
+    @Nullable
+    public static BlockPos getPos(ServerPlayer player){
+        ItemStack stack = player.getItemBySlot(EquipmentSlot.CHEST);
+        if(!stack.has(AttachedIndex.ATTACHED)) return null;
+
+        return stack.get(AttachedIndex.ATTACHED_POS);
+    }
+
+    public static boolean validatePlaceInMap(ServerSubLevel serverSubLevel, ServerPlayer player){
+        ItemStack stack = player.getItemBySlot(EquipmentSlot.CHEST);
+        if(!stack.has(AttachedIndex.ATTACHED_POS)) return false;
+
+        BlockPos position = stack.get(AttachedIndex.ATTACHED_POS);
+        BlockEntity entity = null;
+        if (position != null) entity = serverSubLevel.getLevel().getBlockEntity(position);
+
+        return entity instanceof AttachedBE;
     }
 
     public static Vec3 getSublevelTarget(ServerSubLevel serverSubLevel, BlockPos attachedPosition){
@@ -227,25 +249,106 @@ public class PlayerPhysicHandler {
         ServerSubLevel subLevel = getAttachedServerSubLevel(subLevelId, player.serverLevel());
         if(subLevel == null) return;
 
-        pullPlayerToContraption(player, subLevel, position);
+        pullPlayerToContraption(player, subLevel, position, 0.025);
     }
 
-    public static void pullPlayerToContraption(ServerPlayer player, ServerSubLevel serverSubLevel, BlockPos attachedPosition){
-        /*
-        Vec3 playerPosition = getTarget(player);
-        Vec3 playerGoal = getSublevelTarget(serverSubLevel, attachedPosition);
+    public static Vector3d calculateMidPoint(ServerPlayer player, ServerSubLevel serverSubLevel, BlockPos attachedPosition) {
+        Vec3 targetV3 = getTarget(player);
+        Vector3d target = new Vector3d(targetV3.x(), targetV3.y(), targetV3.z());
 
-        Vec3 diff = playerGoal.subtract(playerPosition);
-        double diffLength = diff.length();
+        Vec3 controllerCenter = attachedPosition.getCenter();
+        Vector3d controllerCenterD = new Vector3d(controllerCenter.x(), controllerCenter.y(), controllerCenter.z());
+        Vector3d controllerInWorld = serverSubLevel.logicalPose().transformPosition(controllerCenterD);
 
-        if(diffLength <= .25d) return;
-        if(diffLength >= 5) return;
+        double contraptionMass = serverSubLevel.getMassTracker().getMass();
+        double playerMass = PLAYER_WEIGHT_KPG;
+        double totalMass = playerMass + contraptionMass;
 
-        Vec3 addedMovement = diff.scale(.5d);
+        if (totalMass <= 0) {
+            return target;
+        }
+        Vector3d midPoint = new Vector3d();
+        midPoint.add(target.mul(playerMass))
+                .add(controllerInWorld.mul(contraptionMass))
+                .div(totalMass);
 
-        player.addDeltaMovement(addedMovement);
-        player.hurtMarked = true;
-
-         */
+        return midPoint;
     }
+
+    public static double calculateRotationMidpoint(ServerPlayer player, ServerSubLevel subLevel){
+        double playerRotation = getBodyRotation(player);
+        Vector3d eulerAngles = new Vector3d();
+        subLevel.logicalPose().orientation().getEulerAnglesXYZ(eulerAngles);
+        double yRotationSublevel = Math.toDegrees(eulerAngles.y());
+
+        double diff = Mth.wrapDegrees(playerRotation - yRotationSublevel);
+
+        double contraptionMass = subLevel.getMassTracker().getMass();
+        double totalMass = PLAYER_WEIGHT_KPG + contraptionMass;
+        double relation = PLAYER_WEIGHT_KPG / totalMass;
+
+        double addedDegrees = Mth.wrapDegrees(relation * diff);
+        double rotationalMidPoint = Mth.wrapDegrees(addedDegrees + yRotationSublevel);
+
+        return rotationalMidPoint;
+    }
+
+    public static double calculateRotationMidpointRads(ServerPlayer player, ServerSubLevel serverSubLevel){
+        return Math.toRadians(calculateRotationMidpoint(player, serverSubLevel));
+    }
+
+    public static void pullPlayerToContraption(ServerPlayer player, ServerSubLevel serverSubLevel,
+                                               BlockPos attachedPosition, double delta) {
+        if(attachedPosition == null) return;
+        Vec3 playerPositionVec = getTarget(player);
+        Vector3d playerPosition = new Vector3d(playerPositionVec.x, playerPositionVec.y, playerPositionVec.z);
+
+        Vector3d playerGoal = calculateMidPoint(player, serverSubLevel, attachedPosition);
+
+        Vector3d diff = playerGoal.sub(playerPosition, new Vector3d());
+        Vec3 playerMotionF = player.getDeltaMovement();
+
+        Vector3d playerMotion = new Vector3d(playerMotionF.x, playerMotionF.y, playerMotionF.z);
+
+        if(diff.lengthSquared() < 0.001){
+            return;
+        }
+
+        Vector3d lastGivenAcceleration = accelerationMap.getOrDefault(player.getUUID(), new Vector3d());
+
+        Vector3d playerMotionSeconds = (playerMotion).mul(20.0);
+        Vector3d relativeMotion = playerMotionSeconds.sub(serverSubLevel.latestLinearVelocity, new Vector3d());
+
+        double stiffnessConstant = AttachedConstraint.stiffnessConstant;
+        double dampingConstant = AttachedConstraint.dampingConstant;
+
+        Vector3d springForce = diff.mul(stiffnessConstant * 6, new Vector3d());
+        Vector3d dampedForce = relativeMotion.mul(dampingConstant, new Vector3d());
+        Vector3d appliedForce = springForce.sub(dampedForce); // F = F_spring - F_damper
+
+        // A = F / M
+        double playerMass = PLAYER_WEIGHT_KPG;
+        if (playerMass <= 0) playerMass = 1.0;
+
+        Vector3d addedMovement = appliedForce.div(playerMass).mul(delta);
+
+        double maxForce = 2.0;
+        if (addedMovement.length() > maxForce) {
+            addedMovement.normalize().mul(maxForce);
+        }
+
+        accelerationMap.put(player.getUUID(), addedMovement);
+
+        player.addDeltaMovement(new Vec3(addedMovement.x, addedMovement.y, addedMovement.z));
+
+        if(addedMovement.lengthSquared() > 0.0005){
+            player.hurtMarked = true;
+        }
+    }
+
+    public static void rotatePlayerToContraption(ServerPlayer player, ServerSubLevel serverSubLevel,
+                                               BlockPos attachedPosition, double delta) {
+
+    }
+
 }

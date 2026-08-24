@@ -53,6 +53,7 @@ public class Createattached {
             .displayItems( (itemDisplayParameters, output) -> {
                 output.accept(AttachedIndex.ATTACHED_BLOCK);
                 output.accept(AttachedIndex.ENTITY_CONNECTOR);
+                output.accept(AttachedIndex.MOVEMENT_SENSOR);
                 output.accept(AttachedIndex.MAGNET_BOOTS);
                 output.accept(AttachedIndex.MAGNET_LEGGINGS);
                 output.accept(AttachedIndex.MAGNET_CHEST);
