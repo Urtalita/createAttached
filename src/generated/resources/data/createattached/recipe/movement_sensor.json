@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "a": {
+      "item": "minecraft:amethyst_shard"
+    },
+    "b": {
+      "item": "create:brass_casing"
+    },
+    "t": {
+      "item": "minecraft:redstone_torch"
+    }
+  },
+  "pattern": [
+    " a ",
+    " t ",
+    " b "
+  ],
+  "result": {
+    "count": 1,
+    "id": "createattached:movement_sensor"
+  }
+}
