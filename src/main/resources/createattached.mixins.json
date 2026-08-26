@@ -9,6 +9,7 @@
     "SubLevelEntityCollision"
   ],
   "client": [
+    "ClientSubLevelRenderMixin"
   ],
   "injectors": {
     "defaultRequire": 1

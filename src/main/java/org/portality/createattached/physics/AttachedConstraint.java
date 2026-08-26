@@ -20,8 +20,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Quaterniond;
@@ -40,7 +38,6 @@ public class AttachedConstraint {
 
     final static double stiffnessConstant = 90.0;
     final static double dampingConstant = 10;
-
     final static double angleTolerance = Math.cos(Math.toRadians(5));
 
     public AttachedConstraint(final UUID entityId, final float scrollDistance, final PhysicsConstraintHandle constraintHandle) {
@@ -57,9 +54,6 @@ public class AttachedConstraint {
         Entity entity = level != null ? level.getEntity(this.entityId) : null;
         if (entity == null) return;
         if(!(entity instanceof LivingEntity livingEntity)) return;
-
-        boolean isJumping = (livingEntity.getDeltaMovement().y > 0 || livingEntity.getDeltaMovement().y < 0) && !livingEntity.onGround();
-        //if (!(livingEntity.onGround() || isJumping || livingEntity.isInWater() || livingEntity.fl || player.onClimbable())) return;
 
         SubLevel standingSubLevel = Sable.HELPER.getTrackingSubLevel(livingEntity);
         if (standingSubLevel == subLevel) return;
@@ -101,7 +95,6 @@ public class AttachedConstraint {
         double yawRad = Math.toRadians(Mth.wrapDegrees(-degRotation));
         double xRad = Math.toRadians((shifting) ? 30 : 0);
 
-
         final double MAX_Y_COORDINATE = 1000.0D;
         boolean validConstraintGoal = !Double.isNaN(constraintGoal.y) && !Double.isInfinite(constraintGoal.y) && Math.abs(constraintGoal.y) <= MAX_Y_COORDINATE;
         boolean validConstraintPosition = !Double.isNaN(constraintPosition.y) && !Double.isInfinite(constraintPosition.y) && Math.abs(constraintPosition.y) <= MAX_Y_COORDINATE;
@@ -116,7 +109,7 @@ public class AttachedConstraint {
         Quaterniond quaterniond = new Quaterniond().rotateX(-xRad).rotateY(-yawRad).invert().mul(initialRot);
         this.orientation.set(quaterniond);
         this.orientation.transformInverse(JOMLConversion.toJOML(livingEntity.getEyePosition()));
-        FreeConstraintConfiguration configuration = new FreeConstraintConfiguration(new Vector3d(0f, 0, 0f), constraintPosition, this.orientation);// quaterniond);
+        FreeConstraintConfiguration configuration = new FreeConstraintConfiguration(new Vector3d(0f, 0, 0f), constraintPosition, this.orientation);
 
         this.constraintHandle = physicsSystem.getPipeline().addConstraint(null, subLevel, configuration);
 
@@ -145,13 +138,9 @@ public class AttachedConstraint {
         final double linearStiffness = (double) config.physicsStaffLinearStiffness.getF()*stiffnessConstant;
         final double linearDamping = (double) config.physicsStaffLinearDamping.getF()*dampingConstant;
 
-        // Linear motors: use goal offsets and moderate stiffness/damping
-
         constraintHandle.setMotor(ConstraintJointAxis.LINEAR_X, localGoal.x(), linearStiffness, linearDamping, false, maxForce);
         constraintHandle.setMotor(ConstraintJointAxis.LINEAR_Y, localGoal.y(), linearStiffness, linearDamping, false, maxForce);
         constraintHandle.setMotor(ConstraintJointAxis.LINEAR_Z, localGoal.z(), linearStiffness, linearDamping, false, maxForce);
-
-        //applyForceToAttachedPlayer(subLevel, handle, pos, (ServerPlayer) player);
     }
 
     public void applyForceToAttachedPlayer(ServerSubLevel subLevel, RigidBodyHandle handle,

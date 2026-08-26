@@ -10,9 +10,11 @@ import com.tterrag.registrate.util.entry.BlockEntry;
 import com.tterrag.registrate.util.entry.ItemEntry;
 import dev.simulated_team.simulated.index.SimItems;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.data.recipes.SingleItemRecipeBuilder;
@@ -110,6 +112,16 @@ public class AttachedIndex {
     public static final DataComponentType<UUID> ATTACHED_ENTITY = register(
             "attached_entity",
             builder -> builder.persistent(UUIDUtil.CODEC).networkSynchronized(UUIDUtil.STREAM_CODEC)
+    );
+
+    public static final DataComponentType<Direction> ATTACHED_FACING = register(
+            "attached_facing",
+            builder -> builder
+                    .persistent(Direction.CODEC)
+                    .networkSynchronized(StreamCodec.of(
+                            (buf, dir) -> buf.writeByte(dir.ordinal()),
+                            buf -> Direction.values()[buf.readByte() & 0xFF]
+                    ))
     );
 
     public static final ItemEntry<MagneticArmourItem> MAGNET_BOOTS = Createattached.ATTACHED_REGISTRATE
