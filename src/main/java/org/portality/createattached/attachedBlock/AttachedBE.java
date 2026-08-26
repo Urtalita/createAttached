@@ -155,6 +155,7 @@ public class AttachedBE extends SmartBlockEntity implements BlockEntitySubLevelA
             ItemStack putOnStack = new ItemStack(AttachedIndex.ATTACHED_BLOCK.asItem());
             putOnStack.set(AttachedIndex.ATTACHED, subLevelId);
             putOnStack.set(AttachedIndex.ATTACHED_POS, worldPosition);
+            putOnStack.set(AttachedIndex.ATTACHED_FACING, getBlockState().getValue(AttachedBlock.FACING));
 
             player.getInventory().armor.set(EquipmentSlot.CHEST.getIndex(), putOnStack);
 
