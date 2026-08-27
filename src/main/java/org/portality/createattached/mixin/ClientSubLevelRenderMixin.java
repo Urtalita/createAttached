@@ -57,6 +57,7 @@ public class ClientSubLevelRenderMixin {
         if(facing.getAxis() == Direction.Axis.Y) degRotation += 180;
         double yawRad = Math.toRadians(Mth.wrapDegrees(-(float)degRotation));
         double xRad = Math.toRadians(shifting ? 30 : 0);
+        if(facing.getAxis() == Direction.Axis.Y) xRad = -xRad;
         Quaterniond targetOrientation = new Quaterniond().rotateX(-xRad).rotateY(-yawRad).invert().mul(initialRot);
 
         Vector3d localBlockCenter = new Vector3d(anchorPos.getX() + 0.5, anchorPos.getY() + 0.5, anchorPos.getZ() + 0.5);
