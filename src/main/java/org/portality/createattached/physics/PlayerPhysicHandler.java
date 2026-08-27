@@ -35,11 +35,12 @@ public class PlayerPhysicHandler {
 
     private static final HashMap<UUID, Float> serverBodyRotations = new HashMap<>();
     private static final HashMap<UUID, Float> contraptionRotation = new HashMap<>();
+    private static final HashMap<UUID, Boolean> hasTurnedOffSpring = new HashMap<>();
 
     private static final double PLAYER_WEIGHT_KPG = 10;
     private static final double MAX_HANDLING_KPG = 30;
 
-    private static final double MAX_ROTATION_SPEED_DEG_PER_SEC = 500;
+    private static final double MAX_ROTATION_SPEED_DEG_PER_SEC = 400;
 
     public static final ResourceLocation OVERLOAD_SPEED_ID = ResourceLocation.fromNamespaceAndPath(Createattached.MODID, "overload_speed");
     public static final ResourceLocation OVERLOAD_JUMP_ID = ResourceLocation.fromNamespaceAndPath(Createattached.MODID, "overload_jump");
@@ -113,6 +114,7 @@ public class PlayerPhysicHandler {
         double absDiff = Math.abs(diff);
 
         if (absDiff < rotSpeed || absDiff <= 1e-5) {
+            hasTurnedOffSpring.put(player.getUUID(), false);
             return Mth.wrapDegrees(target);
         }
 
@@ -127,7 +129,19 @@ public class PlayerPhysicHandler {
 
 
     public static void syncBodyRotation(ServerPlayer player, float rotation){
+        double last = serverBodyRotations.getOrDefault(player.getUUID(),  0F);
         serverBodyRotations.put(player.getUUID(), rotation);
+
+        double rotSpeed = 0.07 * MAX_ROTATION_SPEED_DEG_PER_SEC;
+
+        double diff = Mth.wrapDegrees(rotation - last);
+        double absDiff = Math.abs(diff);
+
+        if (absDiff < rotSpeed) {
+            //return;
+        }
+
+        hasTurnedOffSpring.put(player.getUUID(), true);
     }
 
     public static Vec3 predictNextTickPhysics(Entity entity) {
@@ -309,6 +323,10 @@ public class PlayerPhysicHandler {
     public static void pullPlayerToContraption(ServerPlayer player, ServerSubLevel serverSubLevel,
                                                BlockPos attachedPosition, double delta) {
         if(attachedPosition == null) return;
+
+        boolean turnedOffSpring = hasTurnedOffSpring.getOrDefault(player.getUUID(), false);
+        if(turnedOffSpring) return;
+
         Vec3 playerPositionVec = getTarget(player);
         Vector3d playerPosition = new Vector3d(playerPositionVec.x, playerPositionVec.y, playerPositionVec.z);
 

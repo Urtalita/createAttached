@@ -81,7 +81,7 @@ public class AttachedBlock extends SimpleDierectionalBlock implements IBE<Attach
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         BlockState state = this.defaultBlockState();
-        state = (BlockState)state.setValue(FACING, context.getClickedFace());
+        state = (BlockState)state.setValue(FACING, context.getClickedFace()).setValue(ASSEMBLED, false);
         return state;
     }
 

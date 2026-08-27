@@ -24,6 +24,8 @@ import java.util.UUID;
 @Mixin(ClientSubLevel.class)
 public class ClientSubLevelRenderMixin {
 
+
+
     @Inject(method = "renderPose(F)Ldev/ryanhcode/sable/companion/math/Pose3dc;", at = @At("HEAD"), cancellable = true, remap = false)
     private void createAttached$renderPose(float partialTick, CallbackInfoReturnable<Pose3dc> cir) {
         Minecraft mc = Minecraft.getInstance();

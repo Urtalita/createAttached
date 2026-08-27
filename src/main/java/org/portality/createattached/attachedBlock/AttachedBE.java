@@ -210,31 +210,12 @@ public class AttachedBE extends SmartBlockEntity implements BlockEntitySubLevelA
         if(constraint != null){
             constraint.physicsTick(subLevel, handle, worldPosition, getBlockState());
         }
-
-        /*
-        BlockPos anchor = worldPosition;
-        if(anchor == null) return;
-        Vec3 vecAnchor = new Vec3(anchor.getX() + 0.5, anchor.getY() + 0.5, anchor.getZ() + 0.5);
-
-        Vec3 anchorInWorld = subLevel.logicalPose().transformPosition(vecAnchor);
-        Vec3 diff = target.subtract(anchorInWorld);
-
-        Vector3d angularVelocity = new Vector3d(0, 0, 0);
-        Vector3d linearVelocity = new Vector3d(diff.toVector3f()).div(0.5);
-
-        Vector3d lastLinearVelocity = subLevel.latestLinearVelocity;
-
-        handle.addLinearAndAngularVelocity(lastLinearVelocity.mul(-1, -1, -1), angularVelocity);
-        handle.addLinearAndAngularVelocity(linearVelocity, angularVelocity);
-
-        subLevel.applyQueuedForces(SubLevelPhysicsSystem.get(subLevel.getLevel()), handle, 1);
-        subLevel.updateLastPose();
-
-         */
     }
 
     public static void onPostPhysicsTick(final SubLevelPhysicsSystem physicsSystem, final double timeStep) {
         if(!(physicsSystem.getLevel() instanceof ServerLevel serverLevel)) return;
+
+        if(PlayerPhysicHandler.sublevelToEntity.isEmpty()) return;
 
         for(Map.Entry<UUID, UUID> entry : PlayerPhysicHandler.sublevelToEntity.entrySet()){
             UUID subLevel = entry.getKey();
