@@ -89,18 +89,7 @@ public class AttachedBE extends SmartBlockEntity implements BlockEntitySubLevelA
             if(!(Minecraft.getInstance().level.getGameTime() % SyncBodyAnglePayload.TICKS_BETWEEN_PACKETS == 0)) return;
 
             float yBodyRotation = player.yBodyRot;
-            //PacketDistributor.sendToServer(new SyncBodyAnglePayload(yBodyRotation));
-        }
-
-        SubLevel subLevel = Sable.HELPER.getContaining(this);
-        if(subLevel != null) return;
-
-        if(!(subLevel instanceof  ServerSubLevel serverSubLevel)) return;
-
-        double mass = serverSubLevel.getMassTracker().getMass();
-        if(mass < 0.1d) {
-            subLevel.markRemoved();
-            return;
+            PacketDistributor.sendToServer(new SyncBodyAnglePayload(yBodyRotation));
         }
     }
 
@@ -291,6 +280,11 @@ public class AttachedBE extends SmartBlockEntity implements BlockEntitySubLevelA
         if(entity instanceof LivingEntity livingEntity){
             LivingEntityPhysicsHandler.applyForceToEntity(resultingMovement, livingEntity, localGravity, serverSubLevel);
         }
+    }
+
+    public void reset() {
+        attachedEntity = UUID.randomUUID();
+        sendData();
     }
 
     public static class SubLevelAttachedAssemblyHelper implements SubLevelAssemblyHelper.FrontierPredicate {

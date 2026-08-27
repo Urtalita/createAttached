@@ -1,4 +1,4 @@
-// 1.21.1	2026-08-24T16:51:13.2110298	Registrate Provider for createattached [Registries, Data Maps, Recipes, Advancements, Loot Tables, Tags (blocks), Tags (enchantments), Tags (items), Tags (fluids), Tags (entity_types), generic_server_provider, Blockstates, Item models, Lang (en_us/en_ud), generic_client_provider]
+// 1.21.1	2026-08-27T08:33:45.4283189	Registrate Provider for createattached [Registries, Data Maps, Recipes, Advancements, Loot Tables, Tags (blocks), Tags (enchantments), Tags (items), Tags (fluids), Tags (entity_types), generic_server_provider, Blockstates, Item models, Lang (en_us/en_ud), generic_client_provider]
 2aeed16e9626ed3da2620a5a680541aedf0e228e assets/createattached/blockstates/attached_block.json
 5bee462ccd4296e21eedbb35aa1dd413c68c9bea assets/createattached/blockstates/movement_sensor.json
 789cf539debe5e731eaeeefa12cf18dc1feefb01 assets/createattached/lang/en_ud.json
@@ -14,11 +14,19 @@ c73e957d5208c71380a2f64f8bb6004a4030107f assets/createattached/models/item/magne
 d6fbefb1f274c06ae06c3465a347f8290235da8d assets/createattached/models/item/movement_sensor.json
 fa295a1e7333da8e8abee0dea5deb2c61b4e4cef data/createattached/advancement/recipes/misc/attached_block.json
 ce83bd580beac19f5fed19210695fe73c2afc8d9 data/createattached/advancement/recipes/misc/entity_connector.json
+2e48a3cb2be188ce6d76433ea7f772c3f5e9dfb7 data/createattached/advancement/recipes/misc/magnet_boots.json
+898de5b78f441699d3dc7ec1b953ff0cc79c3db2 data/createattached/advancement/recipes/misc/magnet_chestplate.json
+94b0bb363ab08ccd8f8c403443e876220485e505 data/createattached/advancement/recipes/misc/magnet_helmet.json
+af2c6f88843a65ebc66449fb7964436fffaf0d51 data/createattached/advancement/recipes/misc/magnet_leggings.json
 507fbc2e0891b6b7b276f75f559a84ac4d901cac data/createattached/advancement/recipes/misc/movement_sensor.json
 967dd24c13bc43e0827691ce14d7c6f03f47b3bd data/createattached/loot_table/blocks/attached_block.json
 a0c014db985303589c6e852545f44f8c1d88334c data/createattached/loot_table/blocks/movement_sensor.json
 1ec4060ad12b3eef39d51e48f5226a4444fe0fd5 data/createattached/recipe/attached_block.json
 58d212316da817e151bc612058e0f004c1709c5a data/createattached/recipe/entity_connector.json
+2afde2e51f673711d69379152315f716ea4206a8 data/createattached/recipe/magnet_boots.json
+bc8c30f6ed854d0afd0221cfd2739cc284000c93 data/createattached/recipe/magnet_chestplate.json
+a86fcec2fd2b1beced7d95a86affb1d1088d1baa data/createattached/recipe/magnet_helmet.json
+0d4767184ae0ae913c7819bc9365bd5525720c3b data/createattached/recipe/magnet_leggings.json
 ac8574938cdd9cad5a096f1b5a2038e5fbd7c999 data/createattached/recipe/movement_sensor.json
 0cb8ae9ef5309cb71f4466742964fe418059b0dc data/minecraft/tags/block/mineable/axe.json
 0cb8ae9ef5309cb71f4466742964fe418059b0dc data/minecraft/tags/block/mineable/pickaxe.json

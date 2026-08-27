@@ -10,7 +10,7 @@ import org.portality.createattached.physics.PlayerPhysicHandler;
 
 public record SyncBodyAnglePayload(float yBodyRot) implements ServerboundPacketPayload {
 
-    public static final int TICKS_BETWEEN_PACKETS = 10;
+    public static final int TICKS_BETWEEN_PACKETS = 5;
 
     public static final StreamCodec<ByteBuf, SyncBodyAnglePayload> STREAM_CODEC = ByteBufCodecs.FLOAT.map(
             SyncBodyAnglePayload::new, SyncBodyAnglePayload::yBodyRot

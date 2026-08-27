@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "c": {
+      "item": "create:copper_sheet"
+    },
+    "h": {
+      "item": "minecraft:iron_chestplate"
+    },
+    "i": {
+      "item": "create:industrial_iron_block"
+    },
+    "r": {
+      "item": "create:polished_rose_quartz"
+    }
+  },
+  "pattern": [
+    "c c",
+    "chc",
+    "iri"
+  ],
+  "result": {
+    "count": 1,
+    "id": "createattached:magnet_chestplate"
+  }
+}

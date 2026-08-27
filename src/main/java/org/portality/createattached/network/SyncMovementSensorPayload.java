@@ -31,6 +31,7 @@ public record SyncMovementSensorPayload(BlockPos blockPos, Boolean isOn) impleme
 
         if(be instanceof MovementSensorBe movementSensorBe){
             movementSensorBe.activate();
+            movementSensorBe.notifyUpdate();
         }
     }
 

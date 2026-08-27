@@ -1,6 +1,7 @@
 package org.portality.createattached.physics;
 
 import dev.ryanhcode.sable.api.sublevel.SubLevelContainer;
+import dev.ryanhcode.sable.physics.config.dimension_physics.DimensionPhysicsData;
 import dev.ryanhcode.sable.sublevel.ServerSubLevel;
 import dev.ryanhcode.sable.sublevel.SubLevel;
 import net.minecraft.client.Minecraft;
@@ -33,20 +34,22 @@ public class PlayerPhysicHandler {
     public static final HashMap<UUID, UUID> previouslyAddedMovement = new HashMap<>();
 
     private static final HashMap<UUID, Float> serverBodyRotations = new HashMap<>();
-    private static final HashMap<UUID, Vector3d> accelerationMap = new HashMap<>();
+    private static final HashMap<UUID, Float> contraptionRotation = new HashMap<>();
 
     private static final double PLAYER_WEIGHT_KPG = 10;
     private static final double MAX_HANDLING_KPG = 30;
 
+    private static final double MAX_ROTATION_SPEED_DEG_PER_SEC = 500;
+
     public static final ResourceLocation OVERLOAD_SPEED_ID = ResourceLocation.fromNamespaceAndPath(Createattached.MODID, "overload_speed");
     public static final ResourceLocation OVERLOAD_JUMP_ID = ResourceLocation.fromNamespaceAndPath(Createattached.MODID, "overload_jump");
 
-    public static void put(SubLevel subLevel, Entity entity){
-        sublevelToEntity.put(subLevel.getUniqueId(), entity.getUUID());
-    }
-
     public static boolean isPlayerAttached(Player player){
         return sublevelToEntity.containsValue(player.getUUID());
+    }
+
+    public static void put(SubLevel subLevel, Entity entity){
+        sublevelToEntity.put(subLevel.getUniqueId(), entity.getUUID());
     }
 
     public static boolean isSublevelAttached(SubLevel subLevel){
@@ -93,8 +96,35 @@ public class PlayerPhysicHandler {
         currentBodyRot = Mth.wrapDegrees(currentBodyRot);
         serverBodyRotations.put(uuid, currentBodyRot);
 
-        return currentBodyRot;
+        return Mth.wrapDegrees(currentBodyRot);
     }
+
+    public static double getInterpolatedRotation(ServerPlayer player, ServerSubLevel serverSubLevel, double delta) {
+        double target = getBodyRotation(player);
+        if(!contraptionRotation.containsKey(serverSubLevel.getUniqueId())){
+            contraptionRotation.put(serverSubLevel.getUniqueId(), (float) target);
+            return target;
+        }
+        double current = Mth.wrapDegrees(contraptionRotation.get(serverSubLevel.getUniqueId()));
+
+        double rotSpeed = delta * MAX_ROTATION_SPEED_DEG_PER_SEC;
+
+        double diff = Mth.wrapDegrees(target - current);
+        double absDiff = Math.abs(diff);
+
+        if (absDiff < rotSpeed || absDiff <= 1e-5) {
+            return Mth.wrapDegrees(target);
+        }
+
+        double direction = Math.signum(diff);
+
+        double calculated = current + (direction * rotSpeed);
+        if(Double.isNaN(calculated)) return target;
+        contraptionRotation.put(serverSubLevel.getUniqueId(), (float) calculated);
+        return calculated;
+    }
+
+
 
     public static void syncBodyRotation(ServerPlayer player, float rotation){
         serverBodyRotations.put(player.getUUID(), rotation);
@@ -131,7 +161,7 @@ public class PlayerPhysicHandler {
 
 
     public static Vec3 getTarget(Entity entity){
-        return entity.position().add(0, entity.getEyeHeight(), 0).add(0, -0.5f, 0);
+        return predictNextTickPhysics(entity).add(0, entity.getEyeHeight(), 0).add(0, -0.5f, 0);
     }
 
     @Nullable
@@ -267,34 +297,13 @@ public class PlayerPhysicHandler {
         if (totalMass <= 0) {
             return target;
         }
+
         Vector3d midPoint = new Vector3d();
         midPoint.add(target.mul(playerMass))
                 .add(controllerInWorld.mul(contraptionMass))
                 .div(totalMass);
 
         return midPoint;
-    }
-
-    public static double calculateRotationMidpoint(ServerPlayer player, ServerSubLevel subLevel){
-        double playerRotation = getBodyRotation(player);
-        Vector3d eulerAngles = new Vector3d();
-        subLevel.logicalPose().orientation().getEulerAnglesXYZ(eulerAngles);
-        double yRotationSublevel = Math.toDegrees(eulerAngles.y());
-
-        double diff = Mth.wrapDegrees(playerRotation - yRotationSublevel);
-
-        double contraptionMass = subLevel.getMassTracker().getMass();
-        double totalMass = PLAYER_WEIGHT_KPG + contraptionMass;
-        double relation = PLAYER_WEIGHT_KPG / totalMass;
-
-        double addedDegrees = Mth.wrapDegrees(relation * diff);
-        double rotationalMidPoint = Mth.wrapDegrees(addedDegrees + yRotationSublevel);
-
-        return rotationalMidPoint;
-    }
-
-    public static double calculateRotationMidpointRads(ServerPlayer player, ServerSubLevel serverSubLevel){
-        return Math.toRadians(calculateRotationMidpoint(player, serverSubLevel));
     }
 
     public static void pullPlayerToContraption(ServerPlayer player, ServerSubLevel serverSubLevel,
@@ -314,15 +323,13 @@ public class PlayerPhysicHandler {
             return;
         }
 
-        Vector3d lastGivenAcceleration = accelerationMap.getOrDefault(player.getUUID(), new Vector3d());
-
         Vector3d playerMotionSeconds = (playerMotion).mul(20.0);
         Vector3d relativeMotion = playerMotionSeconds.sub(serverSubLevel.latestLinearVelocity, new Vector3d());
 
-        double stiffnessConstant = AttachedConstraint.stiffnessConstant;
-        double dampingConstant = AttachedConstraint.dampingConstant;
+        double stiffnessConstant = 90.0;
+        double dampingConstant = 10;
 
-        Vector3d springForce = diff.mul(stiffnessConstant * 6, new Vector3d());
+        Vector3d springForce = diff.mul(stiffnessConstant, new Vector3d());
         Vector3d dampedForce = relativeMotion.mul(dampingConstant, new Vector3d());
         Vector3d appliedForce = springForce.sub(dampedForce); // F = F_spring - F_damper
 
@@ -337,18 +344,10 @@ public class PlayerPhysicHandler {
             addedMovement.normalize().mul(maxForce);
         }
 
-        accelerationMap.put(player.getUUID(), addedMovement);
-
         player.addDeltaMovement(new Vec3(addedMovement.x, addedMovement.y, addedMovement.z));
 
         if(addedMovement.lengthSquared() > 0.0005){
             player.hurtMarked = true;
         }
     }
-
-    public static void rotatePlayerToContraption(ServerPlayer player, ServerSubLevel serverSubLevel,
-                                               BlockPos attachedPosition, double delta) {
-
-    }
-
 }

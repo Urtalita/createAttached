@@ -47,7 +47,7 @@ public class MovementSensorBe extends SmartBlockEntity {
     @Override
     public void addBehaviours(List<BlockEntityBehaviour> behaviours) {
         key = new ScrollOptionBehaviour<>(MovementSensorKeys.class,
-                CreateLang.translateDirect("confugure button"), this, new MovementSensorSlotTransform(
+                CreateLang.translateDirect("configure button"), this, new MovementSensorSlotTransform(
                 (state -> state.getValue(MovementSensorBlock.FACING)), 8, 5
         ));
         key.withCallback($ -> onKeyChanged());
@@ -55,6 +55,7 @@ public class MovementSensorBe extends SmartBlockEntity {
     }
 
     private void onKeyChanged() {
+
     }
 
     public void activateFromClient(){
@@ -81,8 +82,23 @@ public class MovementSensorBe extends SmartBlockEntity {
                 case LEFT_CLICK -> {
                     isPressed = AllKeys.isMouseButtonDown(0);
                 }
+                case RIGHT_CLICK -> {
+                    isPressed = AllKeys.isMouseButtonDown(1);
+                }
+                case SHIFT -> {
+                    isPressed = player.isShiftKeyDown();
+                }
                 case SPACE -> {
                     isPressed = player.input.jumping;
+                }
+                case FORWARD -> {
+                    isPressed = player.input.hasForwardImpulse();
+                }
+                case RIGHT -> {
+                    isPressed = player.input.right;
+                }
+                case LEFT -> {
+                    isPressed = player.input.left;
                 }
                 default -> {
 
@@ -137,18 +153,23 @@ public class MovementSensorBe extends SmartBlockEntity {
 
     public enum MovementSensorKeys implements INamedIconOptions {
 
-        ALT(SimIcons.KEY_ARROW_DOWN, "Alt"),
-        CTRL(SimIcons.KEY_ARROW_DOWN, "Ctrl"),
-        LEFT_CLICK(SimIcons.KEY_ARROW_DOWN, "left_click"),
-        SPACE(SimIcons.KEY_ARROW_DOWN, "space")
-        
+        ALT("Alt"),
+        CTRL( "Ctrl"),
+        LEFT_CLICK("left_click"),
+        RIGHT_CLICK("right_click"),
+        SHIFT("shift"),
+        SPACE("space"),
+        FORWARD("W"),
+        RIGHT("D"),
+        LEFT("A")
+
         ;
 
         private String translationKey;
         private AllIcons icon;
 
-        private MovementSensorKeys(AllIcons icon, String name) {
-            this.icon = icon;
+        private MovementSensorKeys(String name) {
+            this.icon = AllIcons.I_ATTACHED;
             translationKey = name;
         }
 
