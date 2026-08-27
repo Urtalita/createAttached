@@ -12,5 +12,5 @@
 
   "block.createattached.attached_block.tooltip.summary": "_(beta)_ RBM to _assemble structure(must _not_ touch ground) containing this block_, than _shift click_ to _attach_ it, to _detach sublevel_ unequip this block from _chestplate slot_",
   "item.createattached.entity_connector.tooltip.summary": "_(alpha)_ RBM on _any_ entity with this item, then _RBM on player connector_ that is on _already assembled_ contraption to _attach it to entity_",
-  "block.createattached.movement_sensor.tooltip.summary": "_(alpha)_ Select key using _value panel_, then it will _detect_ press of _that key_ and output _redstone signal_, perfect for _jetpacks_"
+  "block.createattached.movement_sensor.tooltip.summary": "_(alpha)_ Select key using _value panel_, then it will _detect_ press of _that key_ and output _redstone signal_, maximum range is 10, perfect for _jetpacks_"
 }
