@@ -11,6 +11,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.phys.Vec3;
 import org.portality.createattached.movementSensor.MovementSensorBe;
 import org.portality.createattached.physics.PlayerPhysicHandler;
 
@@ -30,7 +31,16 @@ public record SyncMovementSensorPayload(BlockPos blockPos, Boolean isOn) impleme
         BlockEntity be = serverLevel.getBlockEntity(blockPos);
 
         if(be instanceof MovementSensorBe movementSensorBe){
+            Vec3 end = movementSensorBe.getActualInWorldPos();
+            Vec3 start = player.position();
+            double distance = start.distanceTo(end);
+
+            if(distance > 10){
+                return;
+            }
+
             movementSensorBe.activate();
+            movementSensorBe.notifyUpdate();
         }
     }
 

@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "b": {
+      "item": "minecraft:iron_boots"
+    },
+    "c": {
+      "item": "create:copper_sheet"
+    },
+    "i": {
+      "item": "create:industrial_iron_block"
+    },
+    "l": {
+      "item": "minecraft:blue_dye"
+    }
+  },
+  "pattern": [
+    "   ",
+    "cic",
+    "lbl"
+  ],
+  "result": {
+    "count": 1,
+    "id": "createattached:magnet_boots"
+  }
+}

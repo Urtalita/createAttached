@@ -1,5 +1,7 @@
 package org.portality.createattached.attachedBlock;
 
+import dev.ryanhcode.sable.Sable;
+import dev.ryanhcode.sable.sublevel.SubLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -17,6 +19,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.Nullable;
 import org.portality.createattached.index.AttachedIndex;
 import org.portality.createattached.magneticArmour.MagneticArmourItem;
+import org.portality.createattached.physics.PlayerPhysicHandler;
 
 import static org.portality.createattached.physics.PlayerPhysicHandler.OVERLOAD_JUMP_ID;
 import static org.portality.createattached.physics.PlayerPhysicHandler.OVERLOAD_SPEED_ID;
@@ -58,9 +61,13 @@ public class AttachedItem extends BlockItem {
 
         BlockPos position = stack.get(AttachedIndex.ATTACHED_POS);
 
+        if(position == null) return;
         BlockEntity entity = serverLevel.getBlockEntity(position);
         if(entity instanceof AttachedBE attachedBE){
-            serverLevel.setBlock(position, Blocks.AIR.defaultBlockState(), 3);
+            SubLevel subLevel = Sable.HELPER.getContaining(serverLevel, attachedBE.getBlockPos());
+            if(subLevel == null) return;
+            PlayerPhysicHandler.sublevelToEntity.remove(subLevel.getUniqueId());
+            attachedBE.reset();
         }
     }
 

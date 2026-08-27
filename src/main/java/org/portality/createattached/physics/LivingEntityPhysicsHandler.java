@@ -60,7 +60,17 @@ public class LivingEntityPhysicsHandler {
     }
 
     public static double getRotation(LivingEntity entity){
-        return entity.getRotationVector().y;
+        double yRot = entity.getRotationVector().y;
+
+        AABB boundingBox = entity.getBoundingBox();
+        double zSize = boundingBox.getZsize();
+        double xSize = boundingBox.getXsize();
+
+        if(zSize > xSize){
+            return yRot + 90;
+        } else {
+            return yRot;
+        }
     }
 
     public static void applyForceToEntity(Vector3d localForce, LivingEntity entity, Vector3d localGravity, ServerSubLevel serverSubLevel) {

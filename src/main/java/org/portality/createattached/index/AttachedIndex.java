@@ -127,21 +127,72 @@ public class AttachedIndex {
     public static final ItemEntry<MagneticArmourItem> MAGNET_BOOTS = Createattached.ATTACHED_REGISTRATE
             .item("magnet_boots", (p) -> new MagneticArmourItem(AttachedArmourMaterials.MAGNET, ArmorItem.Type.BOOTS, p))
             .properties(p -> p.stacksTo(1).fireResistant().rarity(Rarity.EPIC))
+            .recipe((c, b) ->
+                    ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get(), 1)
+                            .pattern("   ")
+                            .pattern("cic")
+                            .pattern("lbl")
+                            .define('c', AllItems.COPPER_SHEET)
+                            .define('b', Items.IRON_BOOTS)
+                            .define('l', Items.BLUE_DYE)
+                            .define('i', AllBlocks.INDUSTRIAL_IRON_BLOCK)
+                            .unlockedBy("has_ingredient",
+                                    RegistrateRecipeProvider.has(Items.IRON_BOOTS))
+                            .save(b)
+            )
             .register();
 
     public static final ItemEntry<MagneticArmourItem> MAGNET_LEGGINGS = Createattached.ATTACHED_REGISTRATE
             .item("magnet_leggings", (p) -> new MagneticArmourItem(AttachedArmourMaterials.MAGNET, ArmorItem.Type.LEGGINGS, p))
             .properties(p -> p.stacksTo(1).fireResistant().rarity(Rarity.EPIC))
+            .recipe((c, b) ->
+                    ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get(), 1)
+                            .pattern("clc")
+                            .pattern("c c")
+                            .pattern("i i")
+                            .define('c', AllItems.COPPER_SHEET)
+                            .define('l', Items.IRON_LEGGINGS)
+                            .define('i', AllBlocks.INDUSTRIAL_IRON_BLOCK)
+                            .unlockedBy("has_ingredient",
+                                    RegistrateRecipeProvider.has(Items.IRON_BOOTS))
+                            .save(b)
+            )
             .register();
 
     public static final ItemEntry<MagneticArmourItem> MAGNET_CHEST = Createattached.ATTACHED_REGISTRATE
             .item("magnet_chestplate", (p) -> new MagneticArmourItem(AttachedArmourMaterials.MAGNET, ArmorItem.Type.CHESTPLATE, p))
             .properties(p -> p.stacksTo(1).fireResistant().rarity(Rarity.EPIC))
+            .recipe((c, b) ->
+                    ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get(), 1)
+                            .pattern("c c")
+                            .pattern("chc")
+                            .pattern("iri")
+                            .define('c', AllItems.COPPER_SHEET)
+                            .define('h', Items.IRON_CHESTPLATE)
+                            .define('i', AllBlocks.INDUSTRIAL_IRON_BLOCK)
+                            .define('r', AllItems.POLISHED_ROSE_QUARTZ)
+                            .unlockedBy("has_ingredient",
+                                    RegistrateRecipeProvider.has(Items.IRON_BOOTS))
+                            .save(b)
+            )
             .register();
 
     public static final ItemEntry<MagneticArmourItem> MAGNET_HELMET = Createattached.ATTACHED_REGISTRATE
             .item("magnet_helmet", (p) -> new MagneticArmourItem(AttachedArmourMaterials.MAGNET, ArmorItem.Type.HELMET, p))
             .properties(p -> p.stacksTo(1).fireResistant().rarity(Rarity.EPIC))
+            .recipe((c, b) ->
+                    ShapedRecipeBuilder.shaped(RecipeCategory.MISC, c.get(), 1)
+                            .pattern("rrr")
+                            .pattern("chc")
+                            .pattern("i i")
+                            .define('c', AllItems.COPPER_SHEET)
+                            .define('h', Items.IRON_HELMET)
+                            .define('i', AllBlocks.INDUSTRIAL_IRON_BLOCK)
+                            .define('r', Items.REDSTONE)
+                            .unlockedBy("has_ingredient",
+                                    RegistrateRecipeProvider.has(Items.IRON_BOOTS))
+                            .save(b)
+            )
             .register();
 
     public static final ItemEntry<EntityConnectorItem> ENTITY_CONNECTOR = Createattached.ATTACHED_REGISTRATE

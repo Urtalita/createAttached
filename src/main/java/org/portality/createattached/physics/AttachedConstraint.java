@@ -36,7 +36,7 @@ public class AttachedConstraint {
     private final Quaterniond orientation = new Quaterniond();
     private @Nullable PhysicsConstraintHandle constraintHandle;
 
-    final static double stiffnessConstant = 30.0;
+    final static double stiffnessConstant = 90.0;
     final static double dampingConstant = 10;
     final static double angleTolerance = Math.cos(Math.toRadians(5));
 
@@ -84,7 +84,7 @@ public class AttachedConstraint {
         double degRotation = 0;
         boolean shifting = false;
         if(livingEntity instanceof ServerPlayer player){
-            degRotation = PlayerPhysicHandler.getBodyRotation(player);
+            degRotation = PlayerPhysicHandler.getInterpolatedRotation(player, subLevel, 0.025);
             shifting = player.isShiftKeyDown();
         } else {
             degRotation = LivingEntityPhysicsHandler.getRotation(livingEntity);

@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "c": {
+      "item": "create:copper_sheet"
+    },
+    "i": {
+      "item": "create:industrial_iron_block"
+    },
+    "l": {
+      "item": "minecraft:iron_leggings"
+    }
+  },
+  "pattern": [
+    "clc",
+    "c c",
+    "i i"
+  ],
+  "result": {
+    "count": 1,
+    "id": "createattached:magnet_leggings"
+  }
+}

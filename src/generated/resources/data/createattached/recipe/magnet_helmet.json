@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "c": {
+      "item": "create:copper_sheet"
+    },
+    "h": {
+      "item": "minecraft:iron_helmet"
+    },
+    "i": {
+      "item": "create:industrial_iron_block"
+    },
+    "r": {
+      "item": "minecraft:redstone"
+    }
+  },
+  "pattern": [
+    "rrr",
+    "chc",
+    "i i"
+  ],
+  "result": {
+    "count": 1,
+    "id": "createattached:magnet_helmet"
+  }
+}

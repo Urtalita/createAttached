@@ -80,12 +80,11 @@ public class AttachedBlock extends SimpleDierectionalBlock implements IBE<Attach
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        Direction facing = context.getNearestLookingDirection();
-
-        if (context.getPlayer() != null && context.getPlayer().isShiftKeyDown()) facing = facing.getOpposite();
-
-        return defaultBlockState().setValue(FACING, facing).setValue(ASSEMBLED, false);
+        BlockState state = this.defaultBlockState();
+        state = (BlockState)state.setValue(FACING, context.getClickedFace());
+        return state;
     }
+
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> pBuilder) {
