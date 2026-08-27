@@ -94,6 +94,7 @@ public class AttachedConstraint {
 
         double yawRad = Math.toRadians(Mth.wrapDegrees(-degRotation));
         double xRad = Math.toRadians((shifting) ? 30 : 0);
+        if(facing.getAxis() == Direction.Axis.Y) xRad = -xRad;
 
         final double MAX_Y_COORDINATE = 1000.0D;
         boolean validConstraintGoal = !Double.isNaN(constraintGoal.y) && !Double.isInfinite(constraintGoal.y) && Math.abs(constraintGoal.y) <= MAX_Y_COORDINATE;
