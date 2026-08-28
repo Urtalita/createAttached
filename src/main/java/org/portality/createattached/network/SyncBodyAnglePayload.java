@@ -6,6 +6,7 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
+import org.portality.createattached.physics.EntityRotationHandler;
 import org.portality.createattached.physics.PlayerPhysicHandler;
 
 public record SyncBodyAnglePayload(float yBodyRot) implements ServerboundPacketPayload {
@@ -22,7 +23,7 @@ public record SyncBodyAnglePayload(float yBodyRot) implements ServerboundPacketP
         if(!Float.isFinite(yBodyRot)) return;
         if(Float.isNaN(yBodyRot)) return;
 
-        PlayerPhysicHandler.syncBodyRotation(player, Mth.wrapDegrees(yBodyRot));
+        EntityRotationHandler.syncBodyRotation(player, Mth.wrapDegrees(yBodyRot));
     }
 
     @Override

@@ -38,7 +38,6 @@ public class AttachedConstraint {
 
     final static double stiffnessConstant = 90.0;
     final static double dampingConstant = 10;
-    final static double angleTolerance = Math.cos(Math.toRadians(5));
 
     public AttachedConstraint(final UUID entityId, final float scrollDistance, final PhysicsConstraintHandle constraintHandle) {
         super();
@@ -81,10 +80,11 @@ public class AttachedConstraint {
                 .lookAlong(forward, up)
                 .rotateY(Math.PI);
 
-        double degRotation = 0;
+        double degRotation;
         boolean shifting = false;
+
         if(livingEntity instanceof ServerPlayer player){
-            degRotation = PlayerPhysicHandler.getInterpolatedRotation(player, subLevel, 0.025);
+            degRotation = EntityRotationHandler.getInterpolatedRotation(player, subLevel, 0.025);
             shifting = player.isShiftKeyDown();
         } else {
             degRotation = LivingEntityPhysicsHandler.getRotation(livingEntity);
@@ -142,59 +142,6 @@ public class AttachedConstraint {
         constraintHandle.setMotor(ConstraintJointAxis.LINEAR_X, localGoal.x(), linearStiffness, linearDamping, false, maxForce);
         constraintHandle.setMotor(ConstraintJointAxis.LINEAR_Y, localGoal.y(), linearStiffness, linearDamping, false, maxForce);
         constraintHandle.setMotor(ConstraintJointAxis.LINEAR_Z, localGoal.z(), linearStiffness, linearDamping, false, maxForce);
-    }
-
-    public void applyForceToAttachedPlayer(ServerSubLevel subLevel, RigidBodyHandle handle,
-                                           BlockPos pos, ServerPlayer player){
-        /*
-        Vector3d movementVector = subLevel.latestLinearVelocity.div(20); //to blocks / regular t
-        Vector3d angularVector = subLevel.latestAngularVelocity.div(20); //to radians / second
-        Vector3d playerMovementVector = new Vector3d(player.getDeltaMovement().toVector3f());
-
-        Vector3d movementVectorRelativeToPlayer = movementVector.sub(playerMovementVector);
-
-        Vector3d subLevelTarget = new Vector3d(pos.getCenter().toVector3f());
-        Vector3d target = subLevel.logicalPose().transformPosition(subLevelTarget);
-
-        Vector3d position = new Vector3d(PlayerPhysicHandler.getTarget(player).toVector3f());
-        Vector3d diff = target.sub(position);
-
-        if(areVectorsSimilar(playerMovementVector, movementVector)){
-            return;
-        }
-
-        Vector3d force = diff
-                .mul(stiffnessConstant / 10)
-                .sub(movementVectorRelativeToPlayer.mul(dampingConstant / 10));
-
-        if(force.lengthSquared() > 5 * 5){
-            force = force.normalize().mul(5);
-        }
-
-        if(force.lengthSquared() < 0.001) return;
-
-        if(force.y() < 0){
-            player.addDeltaMovement(new Vec3(force.x(), force.y(), force.z()));
-        }
-
-        force = force.div(100);
-        player.addDeltaMovement(new Vec3(force.x(), force.y(), force.z()));
-        player.hurtMarked = true;
-
-         */
-    }
-
-    public boolean areVectorsSimilar(Vector3d vecA, Vector3d vecB) {
-        if (vecA.lengthSquared() == 0 || vecB.lengthSquared() == 0) {
-            return true;
-        }
-
-        Vector3d normA = vecA.normalize();
-        Vector3d normB = vecB.normalize();
-
-        double dotProduct = normA.dot(normB);
-
-        return dotProduct >= angleTolerance;
     }
 
     public boolean hasJoint() {
