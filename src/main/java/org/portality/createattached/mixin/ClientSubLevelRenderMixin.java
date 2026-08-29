@@ -19,6 +19,7 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Quaterniond;
 import org.joml.Vector3d;
 import org.portality.createattached.index.AttachedIndex;
+import org.portality.createattached.physics.LivingEntityPhysicsHandler;
 import org.portality.createattached.physics.PlayerPhysicHandler;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -54,8 +55,13 @@ public class ClientSubLevelRenderMixin {
 
         if(!(entity instanceof LivingEntity livingEntity)) return null;
 
-        //idk what to do next
-        return null;
+        if(!LivingEntityPhysicsHandler.entityToControllerPos.containsKey(entityID)) return null;
+        BlockPos controller = LivingEntityPhysicsHandler.entityToControllerPos.get(entityID);
+
+        if(!LivingEntityPhysicsHandler.entityToControllerPos.containsKey(entityID)) return null;
+        Direction controllerFacing = LivingEntityPhysicsHandler.entityToControllerFacing.get(entityID);
+
+        return createAttached$getInterpolatedPose(controllerFacing, controller, thisSubLevel, pt, livingEntity);
     }
 
     @Unique
