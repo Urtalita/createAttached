@@ -32,8 +32,6 @@ public class CommonEvents {
     public static void onCommonTick(LevelTickEvent.Post event) {
         if(event.getLevel() instanceof ServerLevel serverLevel) onServerTick(serverLevel);
         if(event.getLevel() instanceof ClientLevel clientLevel) onClientTick(clientLevel);
-
-
     }
 
     public static void onServerTick(ServerLevel serverLevel){

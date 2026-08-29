@@ -32,6 +32,7 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
@@ -267,6 +268,9 @@ public class AttachedBE extends SmartBlockEntity implements BlockEntitySubLevelA
     public void reset() {
         attachedEntity = UUID.randomUUID();
         sendData();
+        constraint = null;
+        followingPlayer = false;
+        level.setBlock(getBlockPos(), Blocks.AIR.defaultBlockState(), 3);
     }
 
     public static class SubLevelAttachedAssemblyHelper implements SubLevelAssemblyHelper.FrontierPredicate {

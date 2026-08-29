@@ -231,6 +231,7 @@ dependencies {
     implementation "curse.maven:create-springs-1403841:8450442"
     implementation "curse.maven:create-big-cannons-646668:8303106"
     implementation "curse.maven:ritchies-projectile-library-1279407:7587771"
+    implementation "curse.maven:create-propulsion-simulated-1522736:8496246"
 
     // Example mod dependency with JEI
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime

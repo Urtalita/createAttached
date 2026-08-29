@@ -38,8 +38,8 @@ public class PlayerPhysicHandler {
     public static ConcurrentHashMap<UUID, Vector3f> queuedVelocity = new ConcurrentHashMap<>(); //safe access from anywhere across sable events
     static final HashMap<UUID, Boolean> hasTurnedOffSpring = new HashMap<>(); //rotation loop bug fix
 
-    private static final double PLAYER_WEIGHT_KPG = 15;
-    private static final double MAX_HANDLING_KPG = 30;
+    private static final double PLAYER_WEIGHT_KPG = 15; //TODO add to config
+    private static final double MAX_HANDLING_KPG = 30; //TODO add to config
 
     public static final ResourceLocation OVERLOAD_SPEED_ID = ResourceLocation.fromNamespaceAndPath(Createattached.MODID, "overload_speed");
     public static final ResourceLocation OVERLOAD_JUMP_ID = ResourceLocation.fromNamespaceAndPath(Createattached.MODID, "overload_jump");
@@ -254,7 +254,7 @@ public class PlayerPhysicHandler {
 
         applyAttributes(serverPlayer, playerOverload);
 
-        Vec3 scaledForce = resultingAffectingPlayer.scale(1d /((PLAYER_WEIGHT_KPG + serverSubLevel.getMassTracker().getMass()) * 10));
+        Vec3 scaledForce = resultingAffectingPlayer.scale(1d / ((PLAYER_WEIGHT_KPG + serverSubLevel.getMassTracker().getMass()) * 10));
 
         serverPlayer.addDeltaMovement(scaledForce);
         if(scaledForce.length() <= 0.01) return;
