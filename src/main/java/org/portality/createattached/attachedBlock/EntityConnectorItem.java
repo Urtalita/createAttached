@@ -20,6 +20,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.portality.createattached.index.AttachedIndex;
 import org.portality.createattached.physics.AttachedConstraint;
+import org.portality.createattached.physics.LivingEntityPhysicsHandler;
 import org.portality.createattached.physics.PlayerPhysicHandler;
 
 import java.util.UUID;
@@ -57,6 +58,9 @@ public class EntityConnectorItem extends Item {
 
             attachedBE.setConstraint(new AttachedConstraint(uuid, 1, null));
             attachedBE.sendData();
+
+            LivingEntityPhysicsHandler.entityToControllerPos.put(uuid, pos);
+            LivingEntityPhysicsHandler.entityToControllerFacing.put(uuid, attachedBE.getFacing());
 
             return InteractionResult.SUCCESS;
         }

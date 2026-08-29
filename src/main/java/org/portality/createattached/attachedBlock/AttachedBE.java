@@ -195,8 +195,6 @@ public class AttachedBE extends SmartBlockEntity implements BlockEntitySubLevelA
 
         subLevel.enableIndividualQueuedForcesTracking(true);
 
-        if(subLevel == null) return;
-
         Entity entity = subLevel.getLevel().getEntity(attachedEntity);
         if(entity == null) return;
 
@@ -211,6 +209,10 @@ public class AttachedBE extends SmartBlockEntity implements BlockEntitySubLevelA
         if(constraint != null){
             constraint.physicsTick(subLevel, handle, worldPosition, getBlockState());
         }
+    }
+
+    public Direction getFacing(){
+        return getBlockState().getValue(AttachedBlock.FACING);
     }
 
     public static void onPostPhysicsTick(final SubLevelPhysicsSystem physicsSystem, final double timeStep) {

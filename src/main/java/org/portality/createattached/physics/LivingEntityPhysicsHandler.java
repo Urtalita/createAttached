@@ -1,6 +1,8 @@
 package org.portality.createattached.physics;
 
 import dev.ryanhcode.sable.sublevel.ServerSubLevel;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
@@ -26,6 +28,9 @@ public class LivingEntityPhysicsHandler {
 
     public static final HashMap<EntityType<?>, Double> entityWeights = new HashMap<>(){};
     public static final HashMap<EntityType<?>, Double> entityMaxKpg = new HashMap<>(){};
+
+    public static final HashMap<UUID, BlockPos> entityToControllerPos = new HashMap<>(){};
+    public static final HashMap<UUID, Direction> entityToControllerFacing = new HashMap<>(){};
 
     public static final ResourceLocation OVERLOAD_FLIGHT_ID = ResourceLocation.fromNamespaceAndPath(Createattached.MODID, "overload_flight");
 

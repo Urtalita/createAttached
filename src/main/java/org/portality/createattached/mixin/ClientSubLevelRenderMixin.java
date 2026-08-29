@@ -5,16 +5,23 @@ import dev.ryanhcode.sable.companion.math.Pose3dc;
 import dev.ryanhcode.sable.sublevel.ClientSubLevel;
 import dev.ryanhcode.sable.sublevel.SubLevel;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Quaterniond;
 import org.joml.Vector3d;
 import org.portality.createattached.index.AttachedIndex;
+import org.portality.createattached.physics.PlayerPhysicHandler;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
@@ -24,36 +31,84 @@ import java.util.UUID;
 @Mixin(ClientSubLevel.class)
 public class ClientSubLevelRenderMixin {
 
+    //TODO make that work for all LivingEntities
+
     @Inject(method = "renderPose(F)Ldev/ryanhcode/sable/companion/math/Pose3dc;", at = @At("HEAD"), cancellable = true, remap = false)
     private void createAttached$renderPose(float partialTick, CallbackInfoReturnable<Pose3dc> cir) {
+        Pose3dc playerTry = createAttached$tryRenderPlayer(partialTick);
+        if(playerTry != null) cir.setReturnValue(playerTry);
+        Pose3dc entityTry = createAttached$tryRenderEntity(partialTick);
+        if(entityTry != null) cir.setReturnValue(entityTry);
+    }
+
+    @Unique
+    private Pose3dc createAttached$tryRenderEntity(float pt){
         Minecraft mc = Minecraft.getInstance();
-        if(mc.player == null) return;
+        if(mc.level == null) return null;
+
+        SubLevel thisSubLevel = (SubLevel)(Object)this;
+        if(!PlayerPhysicHandler.sublevelToEntity.containsKey(thisSubLevel.getUniqueId())) return null;
+
+        UUID entityID = PlayerPhysicHandler.sublevelToEntity.get(thisSubLevel.getUniqueId());
+        Entity entity = createAttached$getEntityByUUID(mc.level, entityID);
+
+        if(!(entity instanceof LivingEntity livingEntity)) return null;
+
+        //idk what to do next
+        return null;
+    }
+
+    @Unique
+    @Nullable
+    private static Entity createAttached$getEntityByUUID(ClientLevel level, UUID uuid) {
+        for (Entity entity : level.entitiesForRendering()) {
+            if (entity.getUUID().equals(uuid)) {
+                return entity;
+            }
+        }
+        return null;
+    }
+
+    @Unique
+    private Pose3dc createAttached$tryRenderPlayer(float pt){
+        Minecraft mc = Minecraft.getInstance();
+        if(mc.player == null) return null;
 
         LocalPlayer player = mc.player;
         ItemStack chest = player.getItemBySlot(EquipmentSlot.CHEST);
-        if(!chest.has(AttachedIndex.ATTACHED)) return;
+        if(!chest.has(AttachedIndex.ATTACHED)) return null;
 
         UUID attachedId = chest.get(AttachedIndex.ATTACHED);
         SubLevel thisSubLevel = (SubLevel)(Object)this;
-        if(!thisSubLevel.getUniqueId().equals(attachedId)) return;
+        if(!thisSubLevel.getUniqueId().equals(attachedId)) return null;
 
         BlockPos anchorPos = chest.get(AttachedIndex.ATTACHED_POS);
         Direction facing = chest.get(AttachedIndex.ATTACHED_FACING);
-        if(anchorPos == null || facing == null) return;
+        if(anchorPos == null || facing == null) return null;
 
-        double px = Mth.lerp(partialTick, player.xOld, player.getX());
-        double py = Mth.lerp(partialTick, player.yOld, player.getY());
-        double pz = Mth.lerp(partialTick, player.zOld, player.getZ());
-        float yBodyRot = Mth.lerp(partialTick, player.yBodyRotO, player.yBodyRot);
+        return createAttached$getInterpolatedPose(facing, anchorPos, thisSubLevel, pt, player);
+    }
 
-        Vector3d target = new Vector3d(px, py + player.getEyeHeight() - 0.5, pz);
+    @Unique
+    private Pose3dc createAttached$getInterpolatedPose(Direction facing, BlockPos anchorPos, SubLevel thisSubLevel, float pt, LivingEntity entity){
+        double px = Mth.lerp(pt, entity.xOld, entity.getX());
+        double py = Mth.lerp(pt, entity.yOld, entity.getY());
+        double pz = Mth.lerp(pt, entity.zOld, entity.getZ());
+        float yBodyRot = Mth.lerp(pt, entity.yBodyRotO, entity.yBodyRot);
+
+        Vector3d target = new Vector3d(px, py + entity.getEyeHeight() - 0.5, pz);
 
         Vector3d forward = new Vector3d(facing.getStepX(), facing.getStepY(), facing.getStepZ());
         Vector3d up = Math.abs(forward.y) > 0.999D ? new Vector3d(0, 0, 1) : new Vector3d(0, 1, 0);
         Quaterniond initialRot = new Quaterniond().lookAlong(forward, up).rotateY(Math.PI);
 
         double degRotation = yBodyRot;
-        boolean shifting = player.isShiftKeyDown();
+        boolean shifting = false;
+
+        if(entity instanceof Player player){
+            shifting = player.isShiftKeyDown();
+        }
+
         if(facing.getAxis() == Direction.Axis.Y) degRotation += 180;
         double yawRad = Math.toRadians(Mth.wrapDegrees(-(float)degRotation));
         double xRad = Math.toRadians(shifting ? 30 : 0);
@@ -66,6 +121,6 @@ public class ClientSubLevelRenderMixin {
         Vector3d newPosition = target.sub(rotatedOffset, new Vector3d());
 
         Vector3d scale = new Vector3d(thisSubLevel.logicalPose().scale());
-        cir.setReturnValue(new Pose3d(newPosition, targetOrientation, new Vector3d(rotPoint), scale));
+        return new Pose3d(newPosition, targetOrientation, new Vector3d(rotPoint), scale);
     }
 }
