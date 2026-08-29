@@ -19,11 +19,14 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.joml.Vector3d;
+import org.joml.Vector3f;
 import org.portality.createattached.Createattached;
 import org.portality.createattached.attachedBlock.AttachedBE;
 import org.portality.createattached.attachedBlock.AttachedItem;
 import org.portality.createattached.index.AttachedIndex;
+import org.portality.createattached.network.UpdateSpeedOnClient;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
@@ -32,6 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class PlayerPhysicHandler {
     public static ConcurrentHashMap<UUID, UUID> sublevelToEntity = new ConcurrentHashMap<>(); //safe access from anywhere across sable events
+    public static ConcurrentHashMap<UUID, Vector3f> queuedVelocity = new ConcurrentHashMap<>(); //safe access from anywhere across sable events
     static final HashMap<UUID, Boolean> hasTurnedOffSpring = new HashMap<>(); //rotation loop bug fix
 
     private static final double PLAYER_WEIGHT_KPG = 15;
@@ -152,29 +156,6 @@ public class PlayerPhysicHandler {
         return serverSubLevel.logicalPose().transformPosition(attachedPosition.getCenter());
     }
 
-    public static void applyForceToPlayer(Vector3d localForce, ServerPlayer serverPlayer, Vector3d localGravity, ServerSubLevel serverSubLevel) {
-        Vector3d movement = serverSubLevel.logicalPose().orientation().transform(new Vector3d(localForce.x, localForce.y, localForce.z));
-        Vector3d movementAfterGravity = serverSubLevel.logicalPose().orientation().transform(new Vector3d(localForce.x, localForce.y, localForce.z).add(localGravity));
-
-        Vec3 resultingAffectingPlayer;
-        double playerOverload = 0;
-
-        if(movementAfterGravity.y() < 0){
-            resultingAffectingPlayer = new Vec3(movement.x(), 0, movement.z());
-            playerOverload = -movementAfterGravity.y();
-        } else {
-            resultingAffectingPlayer = new Vec3(movementAfterGravity.x(), movementAfterGravity.y(), movementAfterGravity.z());
-        }
-
-        applyAttributes(serverPlayer, playerOverload);
-
-        Vec3 scaledForce = resultingAffectingPlayer.scale(1d /((PLAYER_WEIGHT_KPG + serverSubLevel.getMassTracker().getMass()) * 10));
-
-        serverPlayer.addDeltaMovement(scaledForce);
-        if(scaledForce.length() <= 0.01) return;
-        serverPlayer.hurtMarked = true;
-    }
-
     public static void applyAttributes(ServerPlayer serverPlayer, double playerOverload){
         playerOverload = playerOverload / 10d;
 
@@ -257,6 +238,30 @@ public class PlayerPhysicHandler {
         return midPoint;
     }
 
+    public static void applyForceToPlayer(Vector3d localForce, ServerPlayer serverPlayer, Vector3d localGravity, ServerSubLevel serverSubLevel) {
+        Vector3d movement = serverSubLevel.logicalPose().orientation().transform(new Vector3d(localForce.x, localForce.y, localForce.z));
+        Vector3d movementAfterGravity = serverSubLevel.logicalPose().orientation().transform(new Vector3d(localForce.x, localForce.y, localForce.z).add(localGravity));
+
+        Vec3 resultingAffectingPlayer;
+        double playerOverload = 0;
+
+        if(movementAfterGravity.y() < 0){
+            resultingAffectingPlayer = new Vec3(movement.x(), 0, movement.z());
+            playerOverload = -movementAfterGravity.y();
+        } else {
+            resultingAffectingPlayer = new Vec3(movementAfterGravity.x(), movementAfterGravity.y(), movementAfterGravity.z());
+        }
+
+        applyAttributes(serverPlayer, playerOverload);
+
+        Vec3 scaledForce = resultingAffectingPlayer.scale(1d /((PLAYER_WEIGHT_KPG + serverSubLevel.getMassTracker().getMass()) * 10));
+
+        serverPlayer.addDeltaMovement(scaledForce);
+        if(scaledForce.length() <= 0.01) return;
+
+        addQueuedVelocity(scaledForce, serverPlayer);
+    }
+
     public static void pullPlayerToContraption(ServerPlayer player, ServerSubLevel serverSubLevel,
                                                BlockPos attachedPosition, double delta) {
         if(attachedPosition == null) return;
@@ -305,10 +310,19 @@ public class PlayerPhysicHandler {
             addedMovement.normalize().mul(maxForce);
         }
 
-        player.addDeltaMovement(new Vec3(addedMovement.x, addedMovement.y, addedMovement.z));
+        Vec3 mojMovement = new Vec3(addedMovement.x, addedMovement.y, addedMovement.z);
+        player.addDeltaMovement(mojMovement);
 
-        if(addedMovement.lengthSquared() > 0.0005){
-            player.hurtMarked = true;
+        if(addedMovement.lengthSquared() > 0.0005){return;}
+        addQueuedVelocity(mojMovement, player);
+    }
+
+    public static void addQueuedVelocity(Vec3 vec3, ServerPlayer serverPlayer){
+        if(queuedVelocity.containsKey(serverPlayer.getUUID())){
+            queuedVelocity.compute(serverPlayer.getUUID(), (k, existing) -> vec3.toVector3f().add(existing));
+            return;
         }
+
+        queuedVelocity.put(serverPlayer.getUUID(), vec3.toVector3f());
     }
 }

@@ -12,6 +12,7 @@ import java.util.Locale;
 
 public enum AttachedPackets implements BasePacketPayload.PacketTypeProvider {
     SYNK_ROTATION_PAYLOAD(SyncBodyAnglePayload.class, SyncBodyAnglePayload.STREAM_CODEC),
+    SYNK_MOVEMENT_PAYLOAD(UpdateSpeedOnClient.class, UpdateSpeedOnClient.STREAM_CODEC),
     SYNK_MOVEMENT_SENSOR_PAYLOAD(SyncMovementSensorPayload.class, SyncMovementSensorPayload.STREAM_CODEC)
     ;
 
