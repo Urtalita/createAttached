@@ -25,6 +25,7 @@ import org.joml.Vector3f;
 import org.portality.createattached.Createattached;
 import org.portality.createattached.attachedBlock.AttachedBE;
 import org.portality.createattached.attachedBlock.AttachedItem;
+import org.portality.createattached.attachedBlock.Mount;
 import org.portality.createattached.index.AttachedIndex;
 import org.portality.createattached.network.UpdateSpeedOnClient;
 
@@ -133,8 +134,8 @@ public class PlayerPhysicHandler {
     }
 
 
-    public static Vec3 getTarget(Entity entity){
-        return predictNextTickPhysics(entity).add(0, entity.getEyeHeight(), 0).add(0, -0.5f, 0);
+    public static Vec3 getTarget(Entity entity, Mount mount){
+        return predictNextTickPhysics(entity).add(0, entity.getEyeHeight(), 0).add(mount.getOffset(entity));
     }
 
     public static Vec3 getPosition(Entity entity){
@@ -201,7 +202,7 @@ public class PlayerPhysicHandler {
         }
     }
 
-    public static void pullPlayerToContraption(ServerPlayer player){
+    public static void pullPlayerToContraption(ServerPlayer player, Mount mount){
         ItemStack stack = player.getItemBySlot(EquipmentSlot.CHEST);
         if(!stack.has(AttachedIndex.ATTACHED)) return;
 
@@ -211,11 +212,11 @@ public class PlayerPhysicHandler {
         ServerSubLevel subLevel = getAttachedServerSubLevel(subLevelId, player.serverLevel());
         if(subLevel == null) return;
 
-        pullPlayerToContraption(player, subLevel, position, 0.025);
+        pullPlayerToContraption(player, subLevel, position, 0.025, mount);
     }
 
-    public static Vector3d calculateMidPoint(ServerPlayer player, ServerSubLevel serverSubLevel, BlockPos attachedPosition) {
-        Vec3 targetV3 = getTarget(player);
+    public static Vector3d calculateMidPoint(ServerPlayer player, ServerSubLevel serverSubLevel, BlockPos attachedPosition, Mount mount) {
+        Vec3 targetV3 = getTarget(player, mount);
         Vector3d target = new Vector3d(targetV3.x(), targetV3.y(), targetV3.z());
 
         Vec3 controllerCenter = attachedPosition.getCenter();
@@ -263,16 +264,16 @@ public class PlayerPhysicHandler {
     }
 
     public static void pullPlayerToContraption(ServerPlayer player, ServerSubLevel serverSubLevel,
-                                               BlockPos attachedPosition, double delta) {
+                                               BlockPos attachedPosition, double delta, Mount mount) {
         if(attachedPosition == null) return;
 
         boolean turnedOffSpring = hasTurnedOffSpring.getOrDefault(player.getUUID(), false);
         if(turnedOffSpring) return;
 
-        Vec3 playerPositionVec = getTarget(player);
+        Vec3 playerPositionVec = getTarget(player, mount);
         Vector3d playerPosition = new Vector3d(playerPositionVec.x, playerPositionVec.y, playerPositionVec.z);
 
-        Vector3d playerGoal = calculateMidPoint(player, serverSubLevel, attachedPosition);
+        Vector3d playerGoal = calculateMidPoint(player, serverSubLevel, attachedPosition, mount);
 
         Vector3d diff = playerGoal.sub(playerPosition, new Vector3d());
         Vec3 playerMotionF = player.getDeltaMovement();
@@ -290,7 +291,7 @@ public class PlayerPhysicHandler {
         Vector3d springDirection = new Vector3d(diff).normalize();
         double springVelocity = relativeMotion.dot(springDirection);
 
-        double stiffnessConstant = 90.0;
+        double stiffnessConstant = 900.0;
         double dampingConstant = 10.0;
 
         double springForceScalar = diff.length() * stiffnessConstant;
@@ -314,6 +315,7 @@ public class PlayerPhysicHandler {
         player.addDeltaMovement(mojMovement);
 
         if(addedMovement.lengthSquared() > 0.0005){return;}
+        //player.hurtMarked = true;
         addQueuedVelocity(mojMovement, player);
     }
 

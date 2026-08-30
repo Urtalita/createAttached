@@ -25,6 +25,7 @@ import net.minecraft.world.phys.Vec3;
 import org.joml.Quaterniond;
 import org.joml.Vector3d;
 import org.portality.createattached.attachedBlock.AttachedBlock;
+import org.portality.createattached.attachedBlock.Mount;
 
 import javax.annotation.Nullable;
 import java.util.UUID;
@@ -46,7 +47,7 @@ public class AttachedConstraint {
         this.constraintHandle = constraintHandle;
     }
 
-    public void physicsTick(ServerSubLevel subLevel, RigidBodyHandle handle, BlockPos pos, BlockState state) {
+    public void physicsTick(ServerSubLevel subLevel, RigidBodyHandle handle, BlockPos pos, BlockState state, Mount mount) {
         ServerLevel level = subLevel.getLevel();
 
         this.removeJoint();
@@ -60,7 +61,7 @@ public class AttachedConstraint {
         Vector3d constraintGoal =
                 JOMLConversion.toJOML(livingEntity.getEyePosition().add(livingEntity.getLookAngle().scale(Math.max((double)2.0F, (double)this.scrollDistance))));
         if(entity instanceof ServerPlayer serverPlayer){
-            constraintGoal = PlayerPhysicHandler.calculateMidPoint(serverPlayer, subLevel, pos);
+            constraintGoal = PlayerPhysicHandler.calculateMidPoint(serverPlayer, subLevel, pos, mount);
         }
 
         Vector3d constraintPosition = new Vector3d(pos.getX() + 0.5d, pos.getY() + 0.5d, pos.getZ() + 0.5d);
@@ -84,7 +85,7 @@ public class AttachedConstraint {
         boolean shifting = false;
 
         if(livingEntity instanceof ServerPlayer player){
-            degRotation = EntityRotationHandler.getInterpolatedRotation(player, subLevel, 0.025);
+            degRotation = EntityRotationHandler.getInterpolatedRotation(player, subLevel, 0.025, mount);
             shifting = player.isShiftKeyDown();
         } else {
             degRotation = LivingEntityPhysicsHandler.getRotation(livingEntity);
@@ -93,7 +94,8 @@ public class AttachedConstraint {
         if(facing.getAxis() == Direction.Axis.Y) degRotation += 180;
 
         double yawRad = Math.toRadians(Mth.wrapDegrees(-degRotation));
-        double xRad = Math.toRadians((shifting) ? 30 : 0);
+        double xRad = Math.toRadians(mount.getXYDegRotation(livingEntity).x);
+
         if(facing.getAxis() == Direction.Axis.Y) xRad = -xRad;
 
         final double MAX_Y_COORDINATE = 1000.0D;
@@ -126,11 +128,11 @@ public class AttachedConstraint {
             this.constraintHandle.setMotor(axis, 0.0, angularStiffness, angularDamping, false, maxForce);
         }
 
-        Vec3 goal = PlayerPhysicHandler.getTarget(livingEntity);
+        Vec3 goal = PlayerPhysicHandler.getTarget(livingEntity, mount);
         localGoal.set(goal.toVector3f());
 
         if(entity instanceof ServerPlayer serverPlayer){
-            Vector3d realGoal = PlayerPhysicHandler.calculateMidPoint(serverPlayer, subLevel, pos);
+            Vector3d realGoal = PlayerPhysicHandler.calculateMidPoint(serverPlayer, subLevel, pos, mount);
             localGoal.set(realGoal);
         }
 

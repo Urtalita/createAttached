@@ -1,5 +1,6 @@
 package org.portality.createattached.index;
 
+import com.mojang.serialization.Codec;
 import com.simibubi.create.AllBlocks;
 import com.simibubi.create.AllItems;
 import com.simibubi.create.foundation.data.BlockStateGen;
@@ -14,6 +15,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
@@ -113,6 +115,12 @@ public class AttachedIndex {
             "attached_entity",
             builder -> builder.persistent(UUIDUtil.CODEC).networkSynchronized(UUIDUtil.STREAM_CODEC)
     );
+
+    public static final DataComponentType<Integer> ATTACHED_MOUNT = register(
+            "attached_mount",
+            builder -> builder.persistent(Codec.INT).networkSynchronized(ByteBufCodecs.INT)
+    );
+
 
     public static final DataComponentType<Direction> ATTACHED_FACING = register(
             "attached_facing",

@@ -15,9 +15,13 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Quaterniond;
 import org.joml.Vector3d;
+import org.portality.createattached.attachedBlock.Mount;
+import org.portality.createattached.config.CAClient;
+import org.portality.createattached.config.ModConfigs;
 import org.portality.createattached.index.AttachedIndex;
 import org.portality.createattached.physics.LivingEntityPhysicsHandler;
 import org.portality.createattached.physics.PlayerPhysicHandler;
@@ -32,10 +36,9 @@ import java.util.UUID;
 @Mixin(ClientSubLevel.class)
 public class ClientSubLevelRenderMixin {
 
-    //TODO make that work for all LivingEntities
-
     @Inject(method = "renderPose(F)Ldev/ryanhcode/sable/companion/math/Pose3dc;", at = @At("HEAD"), cancellable = true, remap = false)
     private void createAttached$renderPose(float partialTick, CallbackInfoReturnable<Pose3dc> cir) {
+        if(!ModConfigs.client().interpolation.get()) return;
         Pose3dc playerTry = createAttached$tryRenderPlayer(partialTick);
         if(playerTry != null) cir.setReturnValue(playerTry);
         Pose3dc entityTry = createAttached$tryRenderEntity(partialTick);
@@ -61,7 +64,7 @@ public class ClientSubLevelRenderMixin {
         if(!LivingEntityPhysicsHandler.entityToControllerPos.containsKey(entityID)) return null;
         Direction controllerFacing = LivingEntityPhysicsHandler.entityToControllerFacing.get(entityID);
 
-        return createAttached$getInterpolatedPose(controllerFacing, controller, thisSubLevel, pt, livingEntity);
+        return createAttached$getInterpolatedPose(controllerFacing, controller, thisSubLevel, pt, livingEntity, Mount.BODY);
     }
 
     @Unique
@@ -90,34 +93,33 @@ public class ClientSubLevelRenderMixin {
 
         BlockPos anchorPos = chest.get(AttachedIndex.ATTACHED_POS);
         Direction facing = chest.get(AttachedIndex.ATTACHED_FACING);
-        if(anchorPos == null || facing == null) return null;
+        Integer mountIndex = chest.get(AttachedIndex.ATTACHED_MOUNT);
+        if(anchorPos == null || facing == null || mountIndex == null) return null;
 
-        return createAttached$getInterpolatedPose(facing, anchorPos, thisSubLevel, pt, player);
+        Mount mount = Mount.values()[mountIndex];
+
+        return createAttached$getInterpolatedPose(facing, anchorPos, thisSubLevel, pt, player, mount);
     }
 
     @Unique
-    private Pose3dc createAttached$getInterpolatedPose(Direction facing, BlockPos anchorPos, SubLevel thisSubLevel, float pt, LivingEntity entity){
+    private Pose3dc createAttached$getInterpolatedPose(Direction facing, BlockPos anchorPos, SubLevel thisSubLevel, float pt, LivingEntity entity, Mount mount){
         double px = Mth.lerp(pt, entity.xOld, entity.getX());
         double py = Mth.lerp(pt, entity.yOld, entity.getY());
         double pz = Mth.lerp(pt, entity.zOld, entity.getZ());
         float yBodyRot = Mth.lerp(pt, entity.yBodyRotO, entity.yBodyRot);
 
-        Vector3d target = new Vector3d(px, py + entity.getEyeHeight() - 0.5, pz);
+        Vec3 offset = mount.getOffset(entity);
+        Vector3d target = new Vector3d(px, py + entity.getEyeHeight(), pz).add(offset.x, offset.y, offset.z);
 
         Vector3d forward = new Vector3d(facing.getStepX(), facing.getStepY(), facing.getStepZ());
         Vector3d up = Math.abs(forward.y) > 0.999D ? new Vector3d(0, 0, 1) : new Vector3d(0, 1, 0);
         Quaterniond initialRot = new Quaterniond().lookAlong(forward, up).rotateY(Math.PI);
 
-        double degRotation = yBodyRot;
-        boolean shifting = false;
-
-        if(entity instanceof Player player){
-            shifting = player.isShiftKeyDown();
-        }
+        double degRotation = mount.getXYDegRotation(entity).y;
 
         if(facing.getAxis() == Direction.Axis.Y) degRotation += 180;
         double yawRad = Math.toRadians(Mth.wrapDegrees(-(float)degRotation));
-        double xRad = Math.toRadians(shifting ? 30 : 0);
+        double xRad = Math.toRadians(mount.getXYDegRotation(entity).x);
         if(facing.getAxis() == Direction.Axis.Y) xRad = -xRad;
         Quaterniond targetOrientation = new Quaterniond().rotateX(-xRad).rotateY(-yawRad).invert().mul(initialRot);
 

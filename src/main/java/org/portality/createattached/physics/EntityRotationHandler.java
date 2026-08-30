@@ -6,6 +6,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3d;
+import org.portality.createattached.attachedBlock.Mount;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -87,8 +88,8 @@ public class EntityRotationHandler {
         return dotProduct >= angleTolerance;
     }
 
-    public static double getInterpolatedRotation(ServerPlayer player, ServerSubLevel serverSubLevel, double delta) {
-        double target = getBodyRotation(player);
+    public static double getInterpolatedRotation(ServerPlayer player, ServerSubLevel serverSubLevel, double delta, Mount mount) {
+        double target = mount.getXYDegRotation(player).y;
         if(!contraptionRotation.containsKey(serverSubLevel.getUniqueId())){
             contraptionRotation.put(serverSubLevel.getUniqueId(), (float) target);
             return target;

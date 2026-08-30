@@ -18,6 +18,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.ModLoadingContext;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
@@ -27,6 +28,7 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.portality.createattached.attachedBlock.AttachedArmorLayer;
 import org.portality.createattached.attachedBlock.AttachedBE;
+import org.portality.createattached.config.ModConfigs;
 import org.portality.createattached.index.AttachedIndex;
 import org.portality.createattached.index.AttachedArmourMaterials;
 import org.portality.createattached.index.AttachedPartalModel;
@@ -65,7 +67,7 @@ public class Createattached {
 
 
     public Createattached(IEventBus modEventBus, ModContainer modContainer) {
-        modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
+        ModLoadingContext modLoadingContext = ModLoadingContext.get();
         AttachedArmourMaterials.register(modEventBus);
         AttachedIndex.register();
         AttachedIndex.registerAllComponents(modEventBus);
@@ -77,6 +79,7 @@ public class Createattached {
         CREATIVE_MODE_TABS.register(modEventBus);
 
         SableEventPlatform.INSTANCE.onPostPhysicsTick(AttachedBE::onPostPhysicsTick);
+        ModConfigs.register(modLoadingContext, modContainer);
 
 
         LivingEntityPhysicsHandler.initMaxKpg();

@@ -2,6 +2,8 @@ package org.portality.createattached.attachedBlock;
 
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
+import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollOptionBehaviour;
+import com.simibubi.create.foundation.utility.CreateLang;
 import dev.ryanhcode.sable.Sable;
 import dev.ryanhcode.sable.api.SubLevelAssemblyHelper;
 import dev.ryanhcode.sable.api.block.BlockEntitySubLevelActor;
@@ -43,6 +45,9 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
 import org.portality.createattached.index.AttachedIndex;
+import org.portality.createattached.movementSensor.MovementSensorBe;
+import org.portality.createattached.movementSensor.MovementSensorBlock;
+import org.portality.createattached.movementSensor.MovementSensorSlotTransform;
 import org.portality.createattached.network.SyncBodyAnglePayload;
 import org.portality.createattached.physics.LivingEntityPhysicsHandler;
 import org.portality.createattached.physics.PlayerPhysicHandler;
@@ -53,6 +58,8 @@ import java.util.*;
 public class AttachedBE extends SmartBlockEntity implements BlockEntitySubLevelActor {
     private boolean assembled = false;
     public boolean followingPlayer = false;
+
+    protected ScrollOptionBehaviour<Mount> mount;
 
     @Nullable
     AttachedConstraint constraint = null;
@@ -74,7 +81,13 @@ public class AttachedBE extends SmartBlockEntity implements BlockEntitySubLevelA
 
     @Override
     public void addBehaviours(List<BlockEntityBehaviour> behaviours) {
+        mount = new ScrollOptionBehaviour<>(Mount.class,
+                CreateLang.translateDirect("configure mount"), this, new AttachedValueBoxTransform());
+        behaviours.add(mount);
+    }
 
+    public Mount getMount(){
+        return mount.get();
     }
 
     @Override
@@ -146,6 +159,7 @@ public class AttachedBE extends SmartBlockEntity implements BlockEntitySubLevelA
             putOnStack.set(AttachedIndex.ATTACHED, subLevelId);
             putOnStack.set(AttachedIndex.ATTACHED_POS, worldPosition);
             putOnStack.set(AttachedIndex.ATTACHED_FACING, getBlockState().getValue(AttachedBlock.FACING));
+            putOnStack.set(AttachedIndex.ATTACHED_MOUNT, mount.get().ordinal());
 
             player.getInventory().armor.set(EquipmentSlot.CHEST.getIndex(), putOnStack);
 
@@ -203,11 +217,11 @@ public class AttachedBE extends SmartBlockEntity implements BlockEntitySubLevelA
         }
 
         if(entity instanceof ServerPlayer serverPlayer){
-            PlayerPhysicHandler.pullPlayerToContraption(serverPlayer, subLevel, worldPosition, timeStep);
+            PlayerPhysicHandler.pullPlayerToContraption(serverPlayer, subLevel, worldPosition, timeStep, getMount());
         }
 
         if(constraint != null){
-            constraint.physicsTick(subLevel, handle, worldPosition, getBlockState());
+            constraint.physicsTick(subLevel, handle, worldPosition, getBlockState(), getMount());
         }
     }
 
