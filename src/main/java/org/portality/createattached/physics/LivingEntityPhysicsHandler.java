@@ -23,8 +23,8 @@ import static org.portality.createattached.physics.PlayerPhysicHandler.OVERLOAD_
 
 public class LivingEntityPhysicsHandler {
     //TODO add to config
-    public static final double DEFAULT_WEIGHT_PER_BLOCK = 10; //weight of entity per block of volume
-    public static final double MAX_HANDLING_KPG_PER_BLOCK = 30; // max kpg per block of entity
+    public static double DEFAULT_WEIGHT_PER_BLOCK = 10; //weight of entity per block of volume
+    public static double MAX_HANDLING_KPG_PER_BLOCK = 30; // max kpg per block of entity
 
     public static final HashMap<EntityType<?>, Double> entityWeights = new HashMap<>(){};
     public static final HashMap<EntityType<?>, Double> entityMaxKpg = new HashMap<>(){};

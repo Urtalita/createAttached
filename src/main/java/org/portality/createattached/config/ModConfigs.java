@@ -12,6 +12,8 @@ import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.neoforge.common.ModConfigSpec;
 import org.apache.commons.lang3.tuple.Pair;
+import org.portality.createattached.physics.LivingEntityPhysicsHandler;
+import org.portality.createattached.physics.PlayerPhysicHandler;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -34,6 +36,7 @@ public class ModConfigs {
     public static CAClient client() {
         return client;
     }
+
     public static CAServer server() {
         return server;
     }
@@ -84,5 +87,16 @@ public class ModConfigs {
             if (config.specification == event.getConfig()
                     .getSpec())
                 config.onReload();
+
+        loadConstants();
+    }
+
+
+
+    public static void loadConstants(){
+        LivingEntityPhysicsHandler.DEFAULT_WEIGHT_PER_BLOCK = server().entity_weight.get();
+        LivingEntityPhysicsHandler.MAX_HANDLING_KPG_PER_BLOCK = server().entity_max_kpg.get();
+        PlayerPhysicHandler.PLAYER_WEIGHT_KPG = server().player_weight.get();
+        PlayerPhysicHandler.MAX_HANDLING_KPG = server().player_max_kpg.get();
     }
 }

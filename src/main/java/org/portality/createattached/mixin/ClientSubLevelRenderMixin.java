@@ -9,12 +9,14 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Quaterniond;
@@ -108,6 +110,10 @@ public class ClientSubLevelRenderMixin {
         double pz = Mth.lerp(pt, entity.zOld, entity.getZ());
         float yBodyRot = Mth.lerp(pt, entity.yBodyRotO, entity.yBodyRot);
 
+        Vec2 rotationalVector = mount.getXYDegRotation(entity);
+
+        if(entity instanceof Player && mount == Mount.BODY) rotationalVector = new Vec2(rotationalVector.x, yBodyRot);
+
         Vec3 offset = mount.getOffset(entity);
         Vector3d target = new Vector3d(px, py + entity.getEyeHeight(), pz).add(offset.x, offset.y, offset.z);
 
@@ -115,11 +121,11 @@ public class ClientSubLevelRenderMixin {
         Vector3d up = Math.abs(forward.y) > 0.999D ? new Vector3d(0, 0, 1) : new Vector3d(0, 1, 0);
         Quaterniond initialRot = new Quaterniond().lookAlong(forward, up).rotateY(Math.PI);
 
-        double degRotation = mount.getXYDegRotation(entity).y;
+        double degRotation = rotationalVector.y;
 
         if(facing.getAxis() == Direction.Axis.Y) degRotation += 180;
         double yawRad = Math.toRadians(Mth.wrapDegrees(-(float)degRotation));
-        double xRad = Math.toRadians(mount.getXYDegRotation(entity).x);
+        double xRad = Math.toRadians(rotationalVector.x);
         if(facing.getAxis() == Direction.Axis.Y) xRad = -xRad;
         Quaterniond targetOrientation = new Quaterniond().rotateX(-xRad).rotateY(-yawRad).invert().mul(initialRot);
 

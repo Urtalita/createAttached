@@ -39,8 +39,8 @@ public class PlayerPhysicHandler {
     public static ConcurrentHashMap<UUID, Vector3f> queuedVelocity = new ConcurrentHashMap<>(); //safe access from anywhere across sable events
     static final HashMap<UUID, Boolean> hasTurnedOffSpring = new HashMap<>(); //rotation loop bug fix
 
-    private static final double PLAYER_WEIGHT_KPG = 15; //TODO add to config
-    private static final double MAX_HANDLING_KPG = 30; //TODO add to config
+    public static double PLAYER_WEIGHT_KPG = 15;
+    public static double MAX_HANDLING_KPG = 30;
 
     public static final ResourceLocation OVERLOAD_SPEED_ID = ResourceLocation.fromNamespaceAndPath(Createattached.MODID, "overload_speed");
     public static final ResourceLocation OVERLOAD_JUMP_ID = ResourceLocation.fromNamespaceAndPath(Createattached.MODID, "overload_jump");
@@ -291,7 +291,7 @@ public class PlayerPhysicHandler {
         Vector3d springDirection = new Vector3d(diff).normalize();
         double springVelocity = relativeMotion.dot(springDirection);
 
-        double stiffnessConstant = 900.0;
+        double stiffnessConstant = 400.0;
         double dampingConstant = 10.0;
 
         double springForceScalar = diff.length() * stiffnessConstant;
@@ -301,10 +301,8 @@ public class PlayerPhysicHandler {
         Vector3d appliedForce = springDirection.mul(totalForceScalar);
 
         // A = F / M
-        double playerMass = PLAYER_WEIGHT_KPG;
-        if (playerMass <= 0) playerMass = 1.0;
 
-        Vector3d addedMovement = appliedForce.div(playerMass).mul(delta);
+        Vector3d addedMovement = appliedForce.div(PLAYER_WEIGHT_KPG).mul(delta);
 
         double maxForce = 2.0;
         if (addedMovement.length() > maxForce) {
@@ -315,8 +313,8 @@ public class PlayerPhysicHandler {
         player.addDeltaMovement(mojMovement);
 
         if(addedMovement.lengthSquared() > 0.0005){return;}
-        //player.hurtMarked = true;
-        addQueuedVelocity(mojMovement, player);
+        player.hurtMarked = true;
+        //addQueuedVelocity(mojMovement, player);
     }
 
     public static void addQueuedVelocity(Vec3 vec3, ServerPlayer serverPlayer){
